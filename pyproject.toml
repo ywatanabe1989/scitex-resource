@@ -1,0 +1,61 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "scitex-resource"
+version = "0.1.0"
+description = "System resource info, processor usage logging, RAM limit — standalone module from the SciTeX ecosystem"
+readme = "README.md"
+license = "AGPL-3.0-only"
+requires-python = ">=3.9"
+authors = [{name = "Yusuke Watanabe", email = "ywatanabe@scitex.ai"}]
+keywords = ["scitex", "resource", "psutil", "system-info", "ram-limit"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Operating System :: POSIX",
+    "Programming Language :: Python :: 3",
+    "Topic :: System :: Monitoring",
+    "Topic :: System :: Hardware",
+]
+dependencies = [
+    "pandas",
+    "psutil",
+    "PyYAML",
+    "matplotlib",
+]
+
+[project.optional-dependencies]
+sh = ["scitex-sh>=0.1.0"]
+dev = ["pytest", "pytest-cov", "ruff"]
+docs = [
+    "sphinx>=7.0",
+    "sphinx-rtd-theme>=2.0",
+    "myst-parser>=2.0",
+    "sphinx-copybutton>=0.5",
+    "sphinx-autodoc-typehints>=1.25",
+]
+all = ["scitex-resource[sh,dev,docs]"]
+
+[project.urls]
+Homepage = "https://github.com/ywatanabe1989/scitex-resource"
+Repository = "https://github.com/ywatanabe1989/scitex-resource"
+Documentation = "https://scitex-resource.readthedocs.io"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+scitex_resource = ["_get_specs/*.yaml"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = ["--disable-warnings"]
+
+[tool.ruff]
+target-version = "py39"
+line-length = 88
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "I"]
+ignore = ["E501"]
