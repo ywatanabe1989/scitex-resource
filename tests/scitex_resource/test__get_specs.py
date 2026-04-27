@@ -2,10 +2,16 @@
 # Timestamp: "2025-06-02 16:50:00 (ywatanabe)"
 # File: ./tests/scitex/resource/test__get_specs.py
 
-import platform
 from unittest.mock import MagicMock, patch
 
 import pytest
+
+# Many tests in this module import from the umbrella `scitex` package
+# (e.g. `from scitex.resource import get_specs`). On CI workers that only
+# install scitex_resource (the standalone wheel), `scitex` is not present
+# and the entire module would error out at collection time. Skip the whole
+# module rather than hard-fail when the umbrella isn't available.
+pytest.importorskip("scitex.resource")
 
 
 def test_get_specs_default():
@@ -68,9 +74,10 @@ def test_get_specs_cpu_only():
     """Test get_specs with only CPU information."""
     from scitex.resource import get_specs
 
-    with patch("scitex.resource._get_specs.get_env_info") as mock_env, patch(
-        "scitex.resource._get_specs._psutil"
-    ) as mock_psutil:
+    with (
+        patch("scitex.resource._get_specs.get_env_info") as mock_env,
+        patch("scitex.resource._get_specs._psutil") as mock_psutil,
+    ):
         mock_env.return_value._asdict.return_value = {"os": "Linux"}
 
         # Mock CPU info
@@ -125,9 +132,10 @@ def test_get_specs_yaml_output():
         "cudnn_version": "8.2.4",
     }
 
-    with patch("scitex.resource._get_specs.get_env_info") as mock_env, patch(
-        "scitex.resource._get_specs._yaml"
-    ) as mock_yaml:
+    with (
+        patch("scitex.resource._get_specs.get_env_info") as mock_env,
+        patch("scitex.resource._get_specs._yaml") as mock_yaml,
+    ):
         mock_env.return_value._asdict.return_value = mock_supple_info
         mock_yaml.dump.return_value = "yaml_string_output"
 
@@ -174,9 +182,10 @@ def test_system_info():
     """Test _system_info function."""
     from scitex.resource import _system_info
 
-    with patch("scitex.resource._get_specs._platform") as mock_platform, patch(
-        "scitex.resource._get_specs._supple_os_info"
-    ) as mock_os_info:
+    with (
+        patch("scitex.resource._get_specs._platform") as mock_platform,
+        patch("scitex.resource._get_specs._supple_os_info") as mock_os_info,
+    ):
         mock_uname = MagicMock()
         mock_uname.node = "test-node"
         mock_uname.release = "5.4.0"
@@ -442,9 +451,11 @@ def test_error_handling_in_subsystems():
     """Test error handling in various subsystems."""
     from scitex.resource import get_specs
 
-    with patch("scitex.resource._get_specs.get_env_info") as mock_env, patch(
-        "scitex.resource._get_specs._system_info"
-    ) as mock_system, patch("scitex.resource._get_specs._cpu_info") as mock_cpu:
+    with (
+        patch("scitex.resource._get_specs.get_env_info") as mock_env,
+        patch("scitex.resource._get_specs._system_info") as mock_system,
+        patch("scitex.resource._get_specs._cpu_info") as mock_cpu,
+    ):
         mock_env.return_value._asdict.return_value = {"os": "Linux"}
         mock_system.side_effect = Exception("System info error")
         mock_cpu.side_effect = Exception("CPU info error")
