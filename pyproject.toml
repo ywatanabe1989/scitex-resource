@@ -26,8 +26,14 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-sh = ["scitex-sh>=0.1.0"]
-dev = ["pytest", "pytest-cov", "ruff"]
+sh = [
+    "scitex-sh>=0.1.0",
+]
+dev = [
+    "pytest",
+    "pytest-cov",
+    "ruff",
+]
 docs = [
     "sphinx>=7.0",
     "sphinx-rtd-theme>=2.0",
@@ -35,7 +41,9 @@ docs = [
     "sphinx-copybutton>=0.5",
     "sphinx-autodoc-typehints>=1.25",
 ]
-all = ["scitex-resource[sh,dev,docs]"]
+all = [
+    "scitex-resource[sh]",
+]
 
 [project.urls]
 Homepage = "https://github.com/ywatanabe1989/scitex-resource"
