@@ -1,5 +1,16 @@
 # scitex-resource
 
+<!-- scitex-badges:start -->
+[![PyPI](https://img.shields.io/pypi/v/scitex-resource.svg)](https://pypi.org/project/scitex-resource/)
+[![Python](https://img.shields.io/pypi/pyversions/scitex-resource.svg)](https://pypi.org/project/scitex-resource/)
+[![Tests](https://github.com/ywatanabe1989/scitex-resource/actions/workflows/test.yml/badge.svg)](https://github.com/ywatanabe1989/scitex-resource/actions/workflows/test.yml)
+[![Install Test](https://github.com/ywatanabe1989/scitex-resource/actions/workflows/install-test.yml/badge.svg)](https://github.com/ywatanabe1989/scitex-resource/actions/workflows/install-test.yml)
+[![Coverage](https://codecov.io/gh/ywatanabe1989/scitex-resource/graph/badge.svg)](https://codecov.io/gh/ywatanabe1989/scitex-resource)
+[![Docs](https://readthedocs.org/projects/scitex-resource/badge/?version=latest)](https://scitex-resource.readthedocs.io/en/latest/)
+[![License: AGPL v3](https://img.shields.io/badge/license-AGPL_v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
+<!-- scitex-badges:end -->
+
+
 System resource info, processor usage logging, and RAM limiting helpers, extracted from the [SciTeX](https://github.com/ywatanabe1989/scitex-python) ecosystem as a standalone package.
 
 ## Install
