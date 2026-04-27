@@ -17,7 +17,6 @@ import psutil as _psutil
 import yaml as _yaml
 
 from ._compat import readable_bytes
-
 from ._utils._get_env_info import get_env_info
 
 
@@ -137,8 +136,6 @@ def _cpu_info():
 
 
 def _memory_info():
-    import scitex
-
     svmem = _psutil.virtual_memory()
     swap = _psutil.swap_memory()
 
@@ -159,7 +156,6 @@ def _memory_info():
 
 
 def _disk_info():
-    import scitex
 
     partitions_info = {}
     partitions = _psutil.disk_partitions()
@@ -186,7 +182,6 @@ def _disk_info():
 
 
 def _network_info():
-    import scitex
 
     if_addrs = _psutil.net_if_addrs()
     interfaces = {}
