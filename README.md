@@ -24,18 +24,49 @@ pip install scitex-resource
 ```python
 import scitex_resource as r
 
-# Snapshot of CPU / RAM / disk / GPU / monitor info
+# Flat hub-friendly metrics (cpu/mem/disk/gpu/load) — cross-platform via psutil
+metrics = r.get_metrics()
+
+# Canonical machine identity — every scitex-* package consumes this so they
+# all agree on "what host am I". Resolves env > project config > user config
+# > short hostname. See ~/.scitex/resource/config.yaml below.
+name = r.get_machine_name()
+cfg = r.get_machine_config()        # {"canonical_name", "aliases", "role", "hpc": {...}}
+
+# Rich human-readable snapshot (system info, GPU, network, disk partitions)
 specs = r.get_specs()
 
-# CPU/RAM samples (one-shot)
+# CPU/RAM samples + continuous CSV logging
 usage = r.get_processor_usages()
-
-# Continuous logging (CSV)
 r.log_processor_usages("/tmp/usage.csv", limit_min=30, interval_s=1)
 
 # Cap process RAM
 r.limit_ram(0.5)
 ```
+
+### Machine identity config — `~/.scitex/resource/config.yaml`
+
+```yaml
+machine:
+  canonical_name: mba                  # what every scitex-* package uses to refer to this host
+  aliases:                              # optional; cross-package discovery / drift detection
+    - Yusukes-MacBook-Air
+    - Yusukes-MacBook-Air.local
+  role: head                            # generic role tag (head, worker, hpc-login, ...)
+  hpc:                                  # optional; HPC-only
+    cluster: spartan
+    login_only: true                    # don't surface login-node CPU as available
+    partitions: [physical, sapphire]
+```
+
+Resolution cascade (highest precedence first):
+
+1. `$SCITEX_RESOURCE_MACHINE`
+2. `<project>/.scitex/resource/config.yaml` `machine.canonical_name`
+3. `~/.scitex/resource/config.yaml` `machine.canonical_name`
+4. `socket.gethostname().split(".", 1)[0]`
+
+This is the **ecosystem convention** — see scitex-python `_skills/general/01_arch_06_local-state-directories.md` for the full `.scitex/<pkg-short>/` layout (config tracked, `runtime/` ignored).
 
 ## Status
 

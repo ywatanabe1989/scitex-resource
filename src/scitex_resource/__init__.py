@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """scitex-resource — system resource info, monitoring, RAM limit (standalone)."""
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"
 
 from ._get_metrics import get_metrics
 from ._get_processor_usages import get_processor_usages
@@ -17,11 +17,15 @@ from ._get_specs import (
     get_specs,
 )
 from ._log_processor_usages import log_processor_usages, main
+from ._machine import get_machine_config, get_machine_name, load_config
 
 __all__ = [
+    "get_machine_config",
+    "get_machine_name",
     "get_metrics",
     "get_processor_usages",
     "get_specs",
+    "load_config",
     "log_processor_usages",
     "main",
     "_cpu_info",
