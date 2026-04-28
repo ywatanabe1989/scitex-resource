@@ -35,7 +35,7 @@ def load(path):
     if str(path).endswith(".csv"):
         return pd.read_csv(path)
     try:  # pragma: no cover
-        from scitex.io._load import load as _load
+        from scitex_io._load import load as _load
 
         return _load(path)
     except ImportError:  # pragma: no cover
@@ -53,7 +53,7 @@ def save(obj, path, **kwargs):
         obj.to_csv(path, **kwargs)
         return
     try:  # pragma: no cover
-        from scitex.io._save import save as _save
+        from scitex_io._save import save as _save
 
         _save(obj, path, **kwargs)
     except ImportError:  # pragma: no cover
