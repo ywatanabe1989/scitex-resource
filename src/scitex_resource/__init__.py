@@ -1,8 +1,15 @@
 #!/usr/bin/env python3
 """scitex-resource — system resource info, monitoring, RAM limit (standalone)."""
 
-__version__ = "0.3.0"
-
+try:
+    from importlib.metadata import version as _v, PackageNotFoundError
+    try:
+        __version__ = _v("scitex-resource")
+    except PackageNotFoundError:
+        __version__ = "0.0.0+local"
+    del _v, PackageNotFoundError
+except ImportError:  # pragma: no cover — only on ancient Pythons
+    __version__ = "0.0.0+local"
 from ._get_metrics import get_metrics
 from ._get_processor_usages import get_processor_usages
 from ._get_specs import (
