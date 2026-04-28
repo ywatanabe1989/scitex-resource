@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "scitex-resource"
-version = "0.3.0"
+version = "0.3.1"
 description = "System resource info, processor usage logging, RAM limit — standalone module from the SciTeX ecosystem"
 readme = "README.md"
 license = "AGPL-3.0-only"
@@ -54,7 +54,10 @@ Documentation = "https://scitex-resource.readthedocs.io"
 where = ["src"]
 
 [tool.setuptools.package-data]
-scitex_resource = ["_get_specs/*.yaml"]
+scitex_resource = ["_skills/**/*.md", "_get_specs/*.yaml"]
+
+[project.entry-points."scitex_dev.skills"]
+scitex-resource = "scitex_resource"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
