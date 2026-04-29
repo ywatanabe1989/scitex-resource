@@ -18,9 +18,9 @@ Schema (treat as a public contract; bump minor on rename):
     mem_used_mb        int     "used" excluding cache/buffers (psutil's notion)
     mem_free_mb        int     psutil's available — what apps can grab now
     mem_used_percent   float   psutil.virtual_memory().percent
-    disk_total_mb      int     root partition total in MiB
-    disk_used_mb       int     root partition used in MiB
-    disk_used_percent  float   root partition percent
+    disk_total_mb      int     home-directory partition total in MiB
+    disk_used_mb       int     home-directory partition used in MiB
+    disk_used_percent  float   home-directory partition percent
     gpus               list    [{"name", "vram_total_mb", "vram_used_mb"}, ...]
                                empty list when no NVIDIA GPU / nvidia-smi missing
 
@@ -31,6 +31,7 @@ that don't need GPU info (e.g. 30 s heartbeats on GPU-less hosts).
 from __future__ import annotations
 
 import logging
+import os
 import shutil
 import subprocess
 from typing import Any
@@ -72,7 +73,7 @@ def get_metrics(gpu: bool = True) -> dict[str, Any]:
     metrics["mem_used_percent"] = round(float(vm.percent), 1)
 
     try:
-        du = _psutil.disk_usage("/")
+        du = _psutil.disk_usage(os.path.expanduser("~"))
         metrics["disk_total_mb"] = int(du.total // (1024 * 1024))
         metrics["disk_used_mb"] = int(du.used // (1024 * 1024))
         metrics["disk_used_percent"] = round(float(du.percent), 1)
