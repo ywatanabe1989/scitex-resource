@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """scitex-resource — system resource info, monitoring, RAM limit (standalone)."""
 
+from __future__ import annotations
+
 try:
     from importlib.metadata import version as _v, PackageNotFoundError
     try:
@@ -27,6 +29,7 @@ from ._log_processor_usages import log_processor_usages, main
 from ._machine import get_machine_config, get_machine_name, load_config
 
 __all__ = [
+    "__version__",
     "get_machine_config",
     "get_machine_name",
     "get_metrics",
