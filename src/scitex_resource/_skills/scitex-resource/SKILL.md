@@ -74,5 +74,3 @@ so a project can override the global host config via
 - `scitex-config` — per-host config layered over `$SCITEX_DIR`
 - General skill `01_arch_06_local-state-directories.md` — runtime path
   policy
-
-<!-- EOF -->
