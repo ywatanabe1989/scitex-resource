@@ -10,30 +10,54 @@
 [![License: AGPL v3](https://img.shields.io/badge/license-AGPL_v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 <!-- scitex-badges:end -->
 
+<p align="center">
+  <a href="https://scitex.ai">
+    <img src="docs/scitex-logo-blue-cropped.png" alt="SciTeX" width="400">
+  </a>
+</p>
 
-System resource info, processor usage logging, and RAM limiting helpers, extracted from the [SciTeX](https://github.com/ywatanabe1989/scitex-python) ecosystem as a standalone package.
+<p align="center"><b>System resource info, processor usage logging, RAM limiting + machine-identity config.</b></p>
 
-## Install
+<p align="center">
+  <a href="https://scitex-resource.readthedocs.io/">Full Documentation</a> · <code>pip install scitex-resource</code>
+</p>
+
+---
+
+## Installation
 
 ```bash
 pip install scitex-resource
 ```
 
-## API
+## Quick Start
 
 ```python
 import scitex_resource as r
 
-# Flat hub-friendly metrics (cpu/mem/disk/gpu/load) — cross-platform via psutil
+print(r.get_machine_name())          # canonical machine identity
+metrics = r.get_metrics()            # cpu / mem / disk / gpu / load
+specs = r.get_specs()                # rich human-readable snapshot
+```
+
+## 1 Interfaces
+
+<details>
+<summary><strong>Python API</strong></summary>
+
+<br>
+
+```python
+import scitex_resource as r
+
+# Hub-friendly metrics (cross-platform via psutil)
 metrics = r.get_metrics()
 
-# Canonical machine identity — every scitex-* package consumes this so they
-# all agree on "what host am I". Resolves env > project config > user config
-# > short hostname. See ~/.scitex/resource/config.yaml below.
+# Canonical machine identity
 name = r.get_machine_name()
 cfg = r.get_machine_config()        # {"canonical_name", "aliases", "role", "hpc": {...}}
 
-# Rich human-readable snapshot (system info, GPU, network, disk partitions)
+# Rich snapshot
 specs = r.get_specs()
 
 # CPU/RAM samples + continuous CSV logging
@@ -44,7 +68,9 @@ r.log_processor_usages("/tmp/usage.csv", limit_min=30, interval_s=1)
 r.limit_ram(0.5)
 ```
 
-### Machine identity config — `~/.scitex/resource/config.yaml`
+</details>
+
+## Machine identity config — `~/.scitex/resource/config.yaml`
 
 ```yaml
 machine:
@@ -55,7 +81,7 @@ machine:
   role: head                            # generic role tag (head, worker, hpc-login, ...)
   hpc:                                  # optional; HPC-only
     cluster: spartan
-    login_only: true                    # don't surface login-node CPU as available
+    login_only: true
     partitions: [physical, sapphire]
 ```
 
@@ -66,8 +92,6 @@ Resolution cascade (highest precedence first):
 3. `~/.scitex/resource/config.yaml` `machine.canonical_name`
 4. `socket.gethostname().split(".", 1)[0]`
 
-This is the **ecosystem convention** — see scitex-python `_skills/general/01_arch_06_local-state-directories.md` for the full `.scitex/<pkg-short>/` layout (config tracked, `runtime/` ignored).
-
 ## Status
 
 Standalone fork of `scitex.resource`. Deps: pandas, psutil, PyYAML, matplotlib.
@@ -76,15 +100,32 @@ Decoupling notes:
 - `scitex.str.readable_bytes` / `scitex.gen.fmt_size` / `scitex.str.printc` →
   vendored as 3 small helpers in `_compat.py`.
 - `scitex.io._load.load` / `scitex.io._save.save` → use `pandas.read_csv` /
-  `to_csv` directly for the CSV log files; defer to scitex.io only if a
-  non-CSV path is requested (raises ImportError without scitex installed).
+  `to_csv` directly for the CSV log files.
 - `scitex.sh.sh` → prefer `scitex_sh` if installed, fall back to plain
   `subprocess.run` (list-only).
-- `scitex.session.start/close` `__main__` block → simplified to plain `main()`.
 
 The umbrella package's `scitex.resource` import path is preserved via a
-`sys.modules`-alias bridge. 65/65 tests pass.
+`sys.modules`-alias bridge.
+
+## Part of SciTeX
+
+`scitex-resource` is part of [**SciTeX**](https://scitex.ai).
+
+>Four Freedoms for Research
+>
+>0. The freedom to **run** your research anywhere — your machine, your terms.
+>1. The freedom to **study** how every step works — from raw data to final manuscript.
+>2. The freedom to **redistribute** your workflows, not just your papers.
+>3. The freedom to **modify** any module and share improvements with the community.
+>
+>AGPL-3.0 — because we believe research infrastructure deserves the same freedoms as the software it runs on.
 
 ## License
 
 AGPL-3.0-only (see [LICENSE](./LICENSE)).
+
+---
+
+<p align="center">
+  <a href="https://scitex.ai" target="_blank"><img src="docs/scitex-icon-navy-inverted.png" alt="SciTeX" width="40"/></a>
+</p>
