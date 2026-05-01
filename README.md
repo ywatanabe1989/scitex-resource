@@ -109,7 +109,9 @@ The umbrella package's `scitex.resource` import path is preserved via a
 
 ## Part of SciTeX
 
-`scitex-resource` is part of [**SciTeX**](https://scitex.ai).
+`scitex-resource` is part of [**SciTeX**](https://scitex.ai). Install via
+the umbrella with `pip install scitex[resource]` to use as
+`scitex.resource` (Python).
 
 >Four Freedoms for Research
 >
