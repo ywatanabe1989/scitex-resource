@@ -25,7 +25,7 @@ from typing import Union
 import pandas as pd
 
 from ._compat import printc
-from ._get_processor_usages import get_processor_usages
+from ._specs import get_processor_usages
 
 
 # Vendored minimal load/save: we only need CSV here. Falls back to scitex.io

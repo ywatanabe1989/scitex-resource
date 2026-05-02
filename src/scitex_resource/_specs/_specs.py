@@ -16,8 +16,8 @@ import matplotlib.pyplot as plt
 import psutil as _psutil
 import yaml as _yaml
 
-from ._compat import readable_bytes
-from ._utils._get_env_info import get_env_info
+from .._compat import readable_bytes
+from .._utils._get_env_info import get_env_info
 
 
 def get_specs(
@@ -156,7 +156,6 @@ def _memory_info():
 
 
 def _disk_info():
-
     partitions_info = {}
     partitions = _psutil.disk_partitions()
     for partition in partitions:
@@ -182,7 +181,6 @@ def _disk_info():
 
 
 def _network_info():
-
     if_addrs = _psutil.net_if_addrs()
     interfaces = {}
     for interface_name, interface_addresses in if_addrs.items():

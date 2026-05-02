@@ -7,18 +7,18 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 # Many tests in this module import from the umbrella `scitex` package
-# (e.g. `from scitex.resource import get_specs`). On CI workers that only
+# (e.g. `from scitex_resource import get_specs`). On CI workers that only
 # install scitex_resource (the standalone wheel), `scitex` is not present
 # and the entire module would error out at collection time. Skip the whole
 # module rather than hard-fail when the umbrella isn't available.
-pytest.importorskip("scitex.resource")
+pytest.importorskip("scitex_resource")
 
 
 def test_get_specs_default():
     """Test get_specs with default parameters."""
-    from scitex.resource import get_specs
+    from scitex_resource import get_specs
 
-    with patch("scitex.resource._get_specs.get_env_info") as mock_env:
+    with patch("scitex_resource._specs._specs.get_env_info") as mock_env:
         mock_env.return_value._asdict.return_value = {
             "os": "Linux",
             "gcc_version": "9.4.0",
@@ -48,9 +48,9 @@ def test_get_specs_default():
 
 def test_get_specs_selective_collection():
     """Test get_specs with selective information collection."""
-    from scitex.resource import get_specs
+    from scitex_resource import get_specs
 
-    with patch("scitex.resource._get_specs.get_env_info") as mock_env:
+    with patch("scitex_resource._specs._specs.get_env_info") as mock_env:
         mock_env.return_value._asdict.return_value = {
             "os": "Linux",
             "gcc_version": "9.4.0",
@@ -72,11 +72,11 @@ def test_get_specs_selective_collection():
 
 def test_get_specs_cpu_only():
     """Test get_specs with only CPU information."""
-    from scitex.resource import get_specs
+    from scitex_resource import get_specs
 
     with (
-        patch("scitex.resource._get_specs.get_env_info") as mock_env,
-        patch("scitex.resource._get_specs._psutil") as mock_psutil,
+        patch("scitex_resource._specs._specs.get_env_info") as mock_env,
+        patch("scitex_resource._specs._specs._psutil") as mock_psutil,
     ):
         mock_env.return_value._asdict.return_value = {"os": "Linux"}
 
@@ -115,7 +115,7 @@ def test_get_specs_cpu_only():
 
 def test_get_specs_yaml_output():
     """Test get_specs with YAML output format."""
-    from scitex.resource import get_specs
+    from scitex_resource import get_specs
 
     mock_supple_info = {
         "os": "Linux",
@@ -133,8 +133,8 @@ def test_get_specs_yaml_output():
     }
 
     with (
-        patch("scitex.resource._get_specs.get_env_info") as mock_env,
-        patch("scitex.resource._get_specs._yaml") as mock_yaml,
+        patch("scitex_resource._specs._specs.get_env_info") as mock_env,
+        patch("scitex_resource._specs._specs._yaml") as mock_yaml,
     ):
         mock_env.return_value._asdict.return_value = mock_supple_info
         mock_yaml.dump.return_value = "yaml_string_output"
@@ -149,7 +149,7 @@ def test_get_specs_yaml_output():
 
 def test_get_specs_verbose_output(capsys):
     """Test get_specs with verbose output."""
-    from scitex.resource import get_specs
+    from scitex_resource import get_specs
 
     mock_supple_info = {
         "os": "Linux",
@@ -166,7 +166,7 @@ def test_get_specs_verbose_output(capsys):
         "cudnn_version": "8.2.4",
     }
 
-    with patch("scitex.resource._get_specs.get_env_info") as mock_env:
+    with patch("scitex_resource._specs._specs.get_env_info") as mock_env:
         mock_env.return_value._asdict.return_value = mock_supple_info
 
         result = get_specs(
@@ -180,11 +180,11 @@ def test_get_specs_verbose_output(capsys):
 
 def test_system_info():
     """Test _system_info function."""
-    from scitex.resource import _system_info
+    from scitex_resource._specs import _system_info
 
     with (
-        patch("scitex.resource._get_specs._platform") as mock_platform,
-        patch("scitex.resource._get_specs._supple_os_info") as mock_os_info,
+        patch("scitex_resource._specs._specs._platform") as mock_platform,
+        patch("scitex_resource._specs._specs._supple_os_info") as mock_os_info,
     ):
         mock_uname = MagicMock()
         mock_uname.node = "test-node"
@@ -204,9 +204,9 @@ def test_system_info():
 
 def test_cpu_info():
     """Test _cpu_info function."""
-    from scitex.resource import _cpu_info
+    from scitex_resource._specs import _cpu_info
 
-    with patch("scitex.resource._get_specs._psutil") as mock_psutil:
+    with patch("scitex_resource._specs._specs._psutil") as mock_psutil:
         mock_psutil.cpu_count.side_effect = lambda logical=True: 8 if logical else 4
         mock_psutil.cpu_freq.return_value = MagicMock(
             max=3600.0, min=800.0, current=2400.0
@@ -228,9 +228,9 @@ def test_cpu_info():
 
 def test_memory_info():
     """Test _memory_info function."""
-    from scitex.resource import _memory_info
+    from scitex_resource._specs import _memory_info
 
-    with patch("scitex.resource._get_specs._psutil") as mock_psutil:
+    with patch("scitex_resource._specs._specs._psutil") as mock_psutil:
         mock_mem = MagicMock()
         mock_mem.total = 16000000000  # 16GB
         mock_mem.available = 8000000000  # 8GB
@@ -258,9 +258,9 @@ def test_memory_info():
 
 def test_disk_info():
     """Test _disk_info function."""
-    from scitex.resource import _disk_info
+    from scitex_resource._specs import _disk_info
 
-    with patch("scitex.resource._get_specs._psutil") as mock_psutil:
+    with patch("scitex_resource._specs._specs._psutil") as mock_psutil:
         # Mock partition
         mock_partition = MagicMock()
         mock_partition.device = "/dev/sda1"
@@ -294,9 +294,9 @@ def test_disk_info():
 
 def test_disk_info_permission_error():
     """Test _disk_info function with permission error."""
-    from scitex.resource import _disk_info
+    from scitex_resource._specs import _disk_info
 
-    with patch("scitex.resource._get_specs._psutil") as mock_psutil:
+    with patch("scitex_resource._specs._specs._psutil") as mock_psutil:
         # Mock partition
         mock_partition = MagicMock()
         mock_partition.device = "/dev/sda1"
@@ -322,9 +322,9 @@ def test_disk_info_permission_error():
 
 def test_network_info():
     """Test _network_info function."""
-    from scitex.resource import _network_info
+    from scitex_resource._specs import _network_info
 
-    with patch("scitex.resource._get_specs._psutil") as mock_psutil:
+    with patch("scitex_resource._specs._specs._psutil") as mock_psutil:
         # Mock network interfaces
         mock_address = MagicMock()
         mock_address.address = "192.168.1.100"
@@ -352,10 +352,10 @@ def test_network_info():
 
 def test_supple_os_info():
     """Test _supple_os_info function."""
-    from scitex.resource import _supple_os_info
+    from scitex_resource._specs import _supple_os_info
 
     with patch(
-        "scitex.resource._get_specs._SUPPLE_INFO",
+        "scitex_resource._specs._specs._SUPPLE_INFO",
         {"os": "Ubuntu 20.04", "gcc_version": "9.4.0", "other_key": "other_value"},
     ):
         result = _supple_os_info()
@@ -367,10 +367,10 @@ def test_supple_os_info():
 
 def test_supple_python_info():
     """Test _supple_python_info function."""
-    from scitex.resource import _supple_python_info
+    from scitex_resource._specs import _supple_python_info
 
     with patch(
-        "scitex.resource._get_specs._SUPPLE_INFO",
+        "scitex_resource._specs._specs._SUPPLE_INFO",
         {
             "python_version": "3.8.10",
             "torch_version": "1.10.0",
@@ -392,10 +392,10 @@ def test_supple_python_info():
 
 def test_supple_nvidia_info():
     """Test _supple_nvidia_info function."""
-    from scitex.resource import _supple_nvidia_info
+    from scitex_resource._specs import _supple_nvidia_info
 
     with patch(
-        "scitex.resource._get_specs._SUPPLE_INFO",
+        "scitex_resource._specs._specs._SUPPLE_INFO",
         {
             "nvidia_gpu_models": "GeForce RTX 3080",
             "nvidia_driver_version": "470.103.01",
@@ -418,7 +418,7 @@ def test_supple_nvidia_info():
 
 def test_get_specs_integration():
     """Test get_specs integration with real system calls (minimal)."""
-    from scitex.resource import get_specs
+    from scitex_resource import get_specs
 
     # Test that function doesn't crash with minimal real system data
     try:
@@ -434,9 +434,9 @@ def test_collected_time_format():
     """Test that collected time has correct format."""
     import re
 
-    from scitex.resource import get_specs
+    from scitex_resource import get_specs
 
-    with patch("scitex.resource._get_specs.get_env_info") as mock_env:
+    with patch("scitex_resource._specs._specs.get_env_info") as mock_env:
         mock_env.return_value._asdict.return_value = {"os": "Linux"}
 
         result = get_specs(
@@ -449,12 +449,12 @@ def test_collected_time_format():
 
 def test_error_handling_in_subsystems():
     """Test error handling in various subsystems."""
-    from scitex.resource import get_specs
+    from scitex_resource import get_specs
 
     with (
-        patch("scitex.resource._get_specs.get_env_info") as mock_env,
-        patch("scitex.resource._get_specs._system_info") as mock_system,
-        patch("scitex.resource._get_specs._cpu_info") as mock_cpu,
+        patch("scitex_resource._specs._specs.get_env_info") as mock_env,
+        patch("scitex_resource._specs._specs._system_info") as mock_system,
+        patch("scitex_resource._specs._specs._cpu_info") as mock_cpu,
     ):
         mock_env.return_value._asdict.return_value = {"os": "Linux"}
         mock_system.side_effect = Exception("System info error")

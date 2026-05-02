@@ -15,15 +15,15 @@ import pytest
 
 pytest.importorskip("zarr")
 
-from scitex.resource import get_processor_usages
-from scitex.resource._get_processor_usages import _get_cpu_usage, _get_gpu_usage
+from scitex_resource import get_processor_usages
+from scitex_resource._specs._processor_usages import _get_cpu_usage, _get_gpu_usage
 
 
 class TestGetProcessorUsages:
     """Test suite for get_processor_usages function."""
 
-    @patch("scitex.resource._get_processor_usages._get_gpu_usage")
-    @patch("scitex.resource._get_processor_usages._get_cpu_usage")
+    @patch("scitex_resource._specs._processor_usages._get_gpu_usage")
+    @patch("scitex_resource._specs._processor_usages._get_cpu_usage")
     def test_basic_functionality(self, mock_cpu, mock_gpu):
         """Test basic processor usage retrieval."""
         mock_cpu.return_value = (25.3, 8.2)
@@ -46,8 +46,8 @@ class TestGetProcessorUsages:
         assert result.iloc[0]["VRAM [GiB]"] == 4.5
         assert isinstance(result.iloc[0]["Timestamp"], datetime)
 
-    @patch("scitex.resource._get_processor_usages._get_gpu_usage")
-    @patch("scitex.resource._get_processor_usages._get_cpu_usage")
+    @patch("scitex_resource._specs._processor_usages._get_gpu_usage")
+    @patch("scitex_resource._specs._processor_usages._get_cpu_usage")
     def test_zero_usage(self, mock_cpu, mock_gpu):
         """Test with zero resource usage."""
         mock_cpu.return_value = (0.0, 0.0)
@@ -60,8 +60,8 @@ class TestGetProcessorUsages:
         assert result.iloc[0]["GPU [%]"] == 0.0
         assert result.iloc[0]["VRAM [GiB]"] == 0.0
 
-    @patch("scitex.resource._get_processor_usages._get_gpu_usage")
-    @patch("scitex.resource._get_processor_usages._get_cpu_usage")
+    @patch("scitex_resource._specs._processor_usages._get_gpu_usage")
+    @patch("scitex_resource._specs._processor_usages._get_cpu_usage")
     def test_high_usage(self, mock_cpu, mock_gpu):
         """Test with high resource usage."""
         mock_cpu.return_value = (95.8, 31.7)
@@ -74,8 +74,8 @@ class TestGetProcessorUsages:
         assert result.iloc[0]["GPU [%]"] == 99.9
         assert result.iloc[0]["VRAM [GiB]"] == 23.8
 
-    @patch("scitex.resource._get_processor_usages._get_gpu_usage")
-    @patch("scitex.resource._get_processor_usages._get_cpu_usage")
+    @patch("scitex_resource._specs._processor_usages._get_gpu_usage")
+    @patch("scitex_resource._specs._processor_usages._get_cpu_usage")
     def test_rounding_behavior(self, mock_cpu, mock_gpu):
         """Test DataFrame rounding to 1 decimal place."""
         # The individual functions should return already-rounded values
@@ -90,7 +90,7 @@ class TestGetProcessorUsages:
         assert result.iloc[0]["GPU [%]"] == 65.1
         assert result.iloc[0]["VRAM [GiB]"] == 4.6
 
-    @patch("scitex.resource._get_processor_usages._get_cpu_usage")
+    @patch("scitex_resource._specs._processor_usages._get_cpu_usage")
     def test_cpu_error_handling(self, mock_cpu):
         """Test error handling when CPU monitoring fails."""
         mock_cpu.side_effect = RuntimeError("CPU monitoring failed")
@@ -98,8 +98,8 @@ class TestGetProcessorUsages:
         with pytest.raises(RuntimeError, match="Failed to get resource usage"):
             get_processor_usages()
 
-    @patch("scitex.resource._get_processor_usages._get_gpu_usage")
-    @patch("scitex.resource._get_processor_usages._get_cpu_usage")
+    @patch("scitex_resource._specs._processor_usages._get_gpu_usage")
+    @patch("scitex_resource._specs._processor_usages._get_cpu_usage")
     def test_gpu_error_handling(self, mock_cpu, mock_gpu):
         """Test error handling when GPU monitoring fails."""
         mock_cpu.return_value = (25.0, 8.0)
@@ -112,7 +112,7 @@ class TestGetProcessorUsages:
 class TestGetCpuUsage:
     """Test suite for _get_cpu_usage function."""
 
-    @patch("scitex.resource._get_processor_usages.psutil")
+    @patch("scitex_resource._specs._processor_usages.psutil")
     def test_basic_cpu_usage(self, mock_psutil):
         """Test basic CPU and RAM usage retrieval."""
         mock_memory = Mock()
@@ -127,7 +127,7 @@ class TestGetCpuUsage:
         assert cpu_perc == 45.7
         assert ram_gb == 9.6  # 60% of 16 GB
 
-    @patch("scitex.resource._get_processor_usages.psutil")
+    @patch("scitex_resource._specs._processor_usages.psutil")
     def test_rounding_precision(self, mock_psutil):
         """Test rounding precision control."""
         mock_memory = Mock()
@@ -142,7 +142,7 @@ class TestGetCpuUsage:
         assert cpu_perc == 33.79
         assert ram_gb == 6.04  # 75.456% of 8 GB, rounded to 2 decimals
 
-    @patch("scitex.resource._get_processor_usages.psutil")
+    @patch("scitex_resource._specs._processor_usages.psutil")
     def test_zero_usage(self, mock_psutil):
         """Test with zero CPU and RAM usage."""
         mock_memory = Mock()
@@ -157,7 +157,7 @@ class TestGetCpuUsage:
         assert cpu_perc == 0.0
         assert ram_gb == 0.0
 
-    @patch("scitex.resource._get_processor_usages.psutil")
+    @patch("scitex_resource._specs._processor_usages.psutil")
     def test_max_usage(self, mock_psutil):
         """Test with maximum CPU and RAM usage."""
         mock_memory = Mock()
@@ -172,7 +172,7 @@ class TestGetCpuUsage:
         assert cpu_perc == 100.0
         assert ram_gb == 64.0
 
-    @patch("scitex.resource._get_processor_usages.psutil")
+    @patch("scitex_resource._specs._processor_usages.psutil")
     def test_psutil_error_handling(self, mock_psutil):
         """Test error handling for psutil failures."""
         mock_psutil.cpu_percent.side_effect = Exception("psutil error")
@@ -184,7 +184,7 @@ class TestGetCpuUsage:
 class TestGetGpuUsage:
     """Test suite for _get_gpu_usage function."""
 
-    @patch("scitex.resource._get_processor_usages.subprocess.run")
+    @patch("scitex_resource._specs._processor_usages.subprocess.run")
     def test_basic_gpu_usage(self, mock_run):
         """Test basic GPU and VRAM usage retrieval."""
         mock_result = Mock()
@@ -207,7 +207,7 @@ class TestGetGpuUsage:
             check=True,
         )
 
-    @patch("scitex.resource._get_processor_usages.subprocess.run")
+    @patch("scitex_resource._specs._processor_usages.subprocess.run")
     def test_zero_gpu_usage(self, mock_run):
         """Test with zero GPU usage."""
         mock_result = Mock()
@@ -219,7 +219,7 @@ class TestGetGpuUsage:
         assert gpu_perc == 0.0
         assert vram_gb == 0.0
 
-    @patch("scitex.resource._get_processor_usages.subprocess.run")
+    @patch("scitex_resource._specs._processor_usages.subprocess.run")
     def test_high_gpu_usage(self, mock_run):
         """Test with high GPU usage."""
         mock_result = Mock()
@@ -231,7 +231,7 @@ class TestGetGpuUsage:
         assert gpu_perc == 99.0
         assert vram_gb == 12.0
 
-    @patch("scitex.resource._get_processor_usages.subprocess.run")
+    @patch("scitex_resource._specs._processor_usages.subprocess.run")
     def test_rounding_precision(self, mock_run):
         """Test rounding precision control."""
         mock_result = Mock()
@@ -243,7 +243,7 @@ class TestGetGpuUsage:
         assert gpu_perc == 67.0
         assert vram_gb == 3.375
 
-    @patch("scitex.resource._get_processor_usages.subprocess.run")
+    @patch("scitex_resource._specs._processor_usages.subprocess.run")
     def test_nvidia_smi_not_available(self, mock_run):
         """Test fallback when nvidia-smi is not available."""
         mock_run.side_effect = subprocess.CalledProcessError(1, "nvidia-smi")
@@ -253,7 +253,7 @@ class TestGetGpuUsage:
         assert gpu_perc == 0.0
         assert vram_gb == 0.0
 
-    @patch("scitex.resource._get_processor_usages.subprocess.run")
+    @patch("scitex_resource._specs._processor_usages.subprocess.run")
     def test_invalid_output_format(self, mock_run):
         """Test fallback with invalid nvidia-smi output."""
         mock_result = Mock()
@@ -265,7 +265,7 @@ class TestGetGpuUsage:
         assert gpu_perc == 0.0
         assert vram_gb == 0.0
 
-    @patch("scitex.resource._get_processor_usages.subprocess.run")
+    @patch("scitex_resource._specs._processor_usages.subprocess.run")
     def test_empty_output(self, mock_run):
         """Test fallback with empty nvidia-smi output."""
         mock_result = Mock()
@@ -277,7 +277,7 @@ class TestGetGpuUsage:
         assert gpu_perc == 0.0
         assert vram_gb == 0.0
 
-    @patch("scitex.resource._get_processor_usages.subprocess.run")
+    @patch("scitex_resource._specs._processor_usages.subprocess.run")
     def test_non_numeric_values(self, mock_run):
         """Test fallback with non-numeric nvidia-smi output."""
         mock_result = Mock()
