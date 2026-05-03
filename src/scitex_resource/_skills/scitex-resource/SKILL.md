@@ -1,6 +1,10 @@
 ---
 name: scitex-resource
-description: System resource introspection + monitoring. `get_specs()` returns full hardware/OS/Python snapshot (CPU, memory, disk, network, GPU, OS, Python version) as a nested dict. `get_metrics()` is the lightweight live snapshot (CPU%, mem%, disk%). `get_processor_usages()` returns per-core CPU usage. `log_processor_usages(...)` runs a long-running monitor that appends usage to a JSONL log under `<scitex_dir>/resource/runtime/` for later inspection. `get_machine_name()` returns a stable identifier (hostname + uniquifier) usable as a key in cross-host configs; `get_machine_config()` looks up the per-host overrides via `local_state`. Drop-in replacement for ad-hoc `psutil.cpu_percent() + psutil.virtual_memory()` snippets, hand-rolled `socket.gethostname()` keying, and bespoke "what hardware is this script running on" header blocks at the top of analysis scripts.
+description: |
+  [WHAT] System resource introspection + monitoring.
+  [WHEN] Use when working with scitex-resource APIs or when the user mentions scitex.resource..
+  [HOW] `import scitex_resource` then call `get_specs()`.
+tags: [scitex-resource]
 primary_interface: python
 interfaces:
   python: 3
@@ -10,8 +14,8 @@ interfaces:
   hook: 0
   http: 0
 canonical-location: scitex-resource/src/scitex_resource/_skills/scitex-resource/SKILL.md
-tags: [scitex-resource, scitex-package, system-info, monitoring, hardware]
 ---
+
 
 > **Interfaces:** Python ⭐⭐⭐ (primary) · CLI ⭐ · MCP — · Skills ⭐⭐ · Hook — · HTTP —
 
