@@ -71,6 +71,12 @@ so a project can override the global host config via
 - ❌ Sub-second profiling — `psutil` is rate-limited; use `perf` /
   `py-spy` instead
 
+## Sub-skills
+
+- [01_installation.md](01_installation.md) — pip install + smoke verify
+- [02_quick-start.md](02_quick-start.md) — snapshot + live metrics + monitor
+- [03_python-api.md](03_python-api.md) — public callables reference
+
 ## See also
 
 - `scitex-events` — emit `get_metrics()` as periodic events for cloud
