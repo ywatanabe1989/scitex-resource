@@ -23,7 +23,6 @@ dependencies = [
     "psutil",
     "PyYAML",
     "matplotlib",
-    "scitex",
 ]
 
 [project.optional-dependencies]
