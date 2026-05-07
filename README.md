@@ -32,14 +32,17 @@
 pip install scitex-resource
 ```
 
-## Quick Start
+## Architecture
 
-```python
-import scitex_resource as r
-
-print(r.get_machine_name())          # canonical machine identity
-metrics = r.get_metrics()            # cpu / mem / disk / gpu / load
-specs = r.get_specs()                # rich human-readable snapshot
+```
+src/scitex_resource/
+├── __init__.py                # public API surface
+├── _machine.py                # canonical machine name + config resolution
+├── _log_processor_usages.py   # CPU / RAM CSV logger (continuous)
+├── limit_ram.py               # cap process RSS via resource.RLIMIT_AS
+├── _compat.py                 # vendored str / gen helpers (decoupling)
+├── _utils/                    # psutil wrappers (metrics / specs)
+└── _specs/                    # rich human-readable snapshot helpers
 ```
 
 ## 1 Interfaces
@@ -71,6 +74,32 @@ r.limit_ram(0.5)
 ```
 
 </details>
+
+## Demo
+
+```mermaid
+flowchart LR
+    env["$SCITEX_RESOURCE_MACHINE"] --> resolve["resolve canonical name"]
+    proj["./.scitex/resource/config.yaml"] --> resolve
+    home["~/.scitex/resource/config.yaml"] --> resolve
+    host["socket.gethostname()"] --> resolve
+    resolve --> name["get_machine_name() → 'mba'"]
+    resolve --> cfg["get_machine_config()"]
+    psutil["psutil"] --> metrics["get_metrics()"]
+    metrics --> snapshot[("cpu / mem / disk / gpu / load")]
+    psutil --> log["log_processor_usages('/tmp/usage.csv', limit_min=30)"]
+    log --> csv[("usage.csv (continuous)")]
+```
+
+## Quick Start
+
+```python
+import scitex_resource as r
+
+print(r.get_machine_name())          # canonical machine identity
+metrics = r.get_metrics()            # cpu / mem / disk / gpu / load
+specs = r.get_specs()                # rich human-readable snapshot
+```
 
 ## Machine identity config — `~/.scitex/resource/config.yaml`
 
