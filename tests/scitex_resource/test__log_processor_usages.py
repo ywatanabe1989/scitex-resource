@@ -8,17 +8,15 @@
 import math
 import os
 import tempfile
-import time
-from multiprocessing import Process
-from unittest.mock import MagicMock, Mock, mock_open, patch
+from unittest.mock import Mock, mock_open, patch
 
 import pandas as pd
 import pytest
 
 pytest.importorskip("zarr")
 
-from scitex.resource import log_processor_usages
-from scitex.resource._log_processor_usages import (
+from scitex_resource import log_processor_usages
+from scitex_resource._log_processor_usages import (
     _add,
     _ensure_log_file,
     _log_processor_usages,
@@ -28,7 +26,7 @@ from scitex.resource._log_processor_usages import (
 class TestLogProcessorUsages:
     """Test suite for log_processor_usages function."""
 
-    @patch("scitex.resource._log_processor_usages._log_processor_usages")
+    @patch("scitex_resource._log_processor_usages._log_processor_usages")
     def test_foreground_execution(self, mock_log):
         """Test foreground execution mode."""
         mock_log.return_value = None
@@ -42,7 +40,7 @@ class TestLogProcessorUsages:
             path="/tmp/test.csv", limit_min=1, interval_s=0.1, init=True, verbose=False
         )
 
-    @patch("scitex.resource._log_processor_usages.Process")
+    @patch("scitex_resource._log_processor_usages.Process")
     def test_background_execution(self, mock_process_class):
         """Test background execution mode."""
         mock_process = Mock()
@@ -56,7 +54,7 @@ class TestLogProcessorUsages:
         mock_process_class.assert_called_once()
         mock_process.start.assert_called_once()
 
-    @patch("scitex.resource._log_processor_usages._log_processor_usages")
+    @patch("scitex_resource._log_processor_usages._log_processor_usages")
     def test_default_parameters(self, mock_log):
         """Test with default parameters."""
         mock_log.return_value = None
@@ -71,7 +69,7 @@ class TestLogProcessorUsages:
             verbose=False,
         )
 
-    @patch("scitex.resource._log_processor_usages._log_processor_usages")
+    @patch("scitex_resource._log_processor_usages._log_processor_usages")
     def test_custom_parameters(self, mock_log):
         """Test with custom parameters."""
         mock_log.return_value = None
@@ -97,9 +95,9 @@ class TestLogProcessorUsages:
 class TestLogProcessorUsagesInternal:
     """Test suite for _log_processor_usages function."""
 
-    @patch("scitex.resource._log_processor_usages.time.sleep")
-    @patch("scitex.resource._log_processor_usages._add")
-    @patch("scitex.resource._log_processor_usages._ensure_log_file")
+    @patch("scitex_resource._log_processor_usages.time.sleep")
+    @patch("scitex_resource._log_processor_usages._add")
+    @patch("scitex_resource._log_processor_usages._ensure_log_file")
     def test_basic_logging(self, mock_ensure, mock_add, mock_sleep):
         """Test basic logging functionality."""
         _log_processor_usages(
@@ -118,9 +116,9 @@ class TestLogProcessorUsagesInternal:
         for call in mock_sleep.call_args_list:
             assert call[0][0] == 1.0
 
-    @patch("scitex.resource._log_processor_usages.time.sleep")
-    @patch("scitex.resource._log_processor_usages._add")
-    @patch("scitex.resource._log_processor_usages._ensure_log_file")
+    @patch("scitex_resource._log_processor_usages.time.sleep")
+    @patch("scitex_resource._log_processor_usages._add")
+    @patch("scitex_resource._log_processor_usages._ensure_log_file")
     def test_timing_calculation(self, mock_ensure, mock_add, mock_sleep):
         """Test timing calculation with different intervals."""
         _log_processor_usages(
@@ -140,9 +138,9 @@ class TestLogProcessorUsagesInternal:
         with pytest.raises(AssertionError, match="Path must end with .csv"):
             _log_processor_usages(path="/tmp/test.txt")
 
-    @patch("scitex.resource._log_processor_usages.time.sleep")
-    @patch("scitex.resource._log_processor_usages._add")
-    @patch("scitex.resource._log_processor_usages._ensure_log_file")
+    @patch("scitex_resource._log_processor_usages.time.sleep")
+    @patch("scitex_resource._log_processor_usages._add")
+    @patch("scitex_resource._log_processor_usages._ensure_log_file")
     def test_verbose_parameter(self, mock_ensure, mock_add, mock_sleep):
         """Test verbose parameter is passed to _add."""
         _log_processor_usages(
@@ -160,10 +158,10 @@ class TestLogProcessorUsagesInternal:
 class TestEnsureLogFile:
     """Test suite for _ensure_log_file function."""
 
-    @patch("scitex.resource._log_processor_usages.os.path.exists")
-    @patch("scitex.resource._log_processor_usages.os.makedirs")
-    @patch("scitex.resource._log_processor_usages.pd.DataFrame")
-    @patch("scitex.resource._log_processor_usages.printc")
+    @patch("scitex_resource._log_processor_usages.os.path.exists")
+    @patch("scitex_resource._log_processor_usages.os.makedirs")
+    @patch("scitex_resource._log_processor_usages.pd.DataFrame")
+    @patch("scitex_resource._log_processor_usages.printc")
     def test_create_new_file(self, mock_printc, mock_df, mock_makedirs, mock_exists):
         """Test creating new log file."""
         mock_exists.return_value = False
@@ -181,13 +179,13 @@ class TestEnsureLogFile:
         )
         mock_printc.assert_called_once_with("/tmp/new/test.csv created.")
 
-    @patch("scitex.resource._log_processor_usages.os.path.exists")
-    @patch("scitex.resource._log_processor_usages.sh")
-    @patch("scitex.resource._log_processor_usages.os.makedirs")
-    @patch("scitex.resource._log_processor_usages.pd.DataFrame")
-    @patch("scitex.resource._log_processor_usages.printc")
+    @patch("scitex_resource._log_processor_usages.os.path.exists")
+    @patch("scitex_resource._log_processor_usages.os.remove")
+    @patch("scitex_resource._log_processor_usages.os.makedirs")
+    @patch("scitex_resource._log_processor_usages.pd.DataFrame")
+    @patch("scitex_resource._log_processor_usages.printc")
     def test_reinitialize_existing_file(
-        self, mock_printc, mock_df, mock_makedirs, mock_sh, mock_exists
+        self, mock_printc, mock_df, mock_makedirs, mock_remove, mock_exists
     ):
         """Test reinitializing existing log file."""
         mock_exists.return_value = True
@@ -196,17 +194,17 @@ class TestEnsureLogFile:
 
         _ensure_log_file("/tmp/existing.csv", init=True)
 
-        mock_sh.assert_called_once_with("rm -f /tmp/existing.csv")
+        mock_remove.assert_called_once_with("/tmp/existing.csv")
         mock_makedirs.assert_called_once_with("/tmp", exist_ok=True)
         mock_df.assert_called_once()
         mock_df_instance.to_csv.assert_called_once_with(
             "/tmp/existing.csv", index=False
         )
 
-    @patch("scitex.resource._log_processor_usages.os.path.exists")
-    @patch("scitex.resource._log_processor_usages.sh")
-    @patch("scitex.resource._log_processor_usages.os.makedirs")
-    @patch("scitex.resource._log_processor_usages.pd.DataFrame")
+    @patch("scitex_resource._log_processor_usages.os.path.exists")
+    @patch("scitex_resource._log_processor_usages.sh")
+    @patch("scitex_resource._log_processor_usages.os.makedirs")
+    @patch("scitex_resource._log_processor_usages.pd.DataFrame")
     def test_keep_existing_file(self, mock_df, mock_makedirs, mock_sh, mock_exists):
         """Test keeping existing log file when init=False."""
         mock_exists.return_value = True
@@ -217,12 +215,12 @@ class TestEnsureLogFile:
         mock_makedirs.assert_not_called()
         mock_df.assert_not_called()
 
-    @patch("scitex.resource._log_processor_usages.os.path.exists")
-    @patch("scitex.resource._log_processor_usages.sh")
-    def test_file_removal_error(self, mock_sh, mock_exists):
+    @patch("scitex_resource._log_processor_usages.os.path.exists")
+    @patch("scitex_resource._log_processor_usages.os.remove")
+    def test_file_removal_error(self, mock_remove, mock_exists):
         """Test error handling during file removal."""
         mock_exists.return_value = True
-        mock_sh.side_effect = Exception("Permission denied")
+        mock_remove.side_effect = Exception("Permission denied")
 
         with pytest.raises(RuntimeError, match="Failed to init log file"):
             _ensure_log_file("/tmp/test.csv", init=True)
@@ -231,7 +229,7 @@ class TestEnsureLogFile:
 class TestAddFunction:
     """Test suite for _add function."""
 
-    @patch("scitex.resource._log_processor_usages.get_processor_usages")
+    @patch("scitex_resource._log_processor_usages.get_processor_usages")
     @patch("builtins.open", new_callable=mock_open)
     def test_basic_append(self, mock_file, mock_get_usage):
         """Test basic data appending."""
@@ -250,7 +248,7 @@ class TestAddFunction:
             mock_file.return_value, header=True, index=False
         )
 
-    @patch("scitex.resource._log_processor_usages.get_processor_usages")
+    @patch("scitex_resource._log_processor_usages.get_processor_usages")
     @patch("builtins.open", new_callable=mock_open)
     def test_append_to_existing(self, mock_file, mock_get_usage):
         """Test appending to existing file (no header)."""
@@ -266,7 +264,7 @@ class TestAddFunction:
             mock_file.return_value, header=False, index=False
         )
 
-    @patch("scitex.resource._log_processor_usages.get_processor_usages")
+    @patch("scitex_resource._log_processor_usages.get_processor_usages")
     @patch("builtins.open", new_callable=mock_open)
     def test_header_logic(self, mock_file, mock_get_usage):
         """Test header inclusion logic based on file position."""
@@ -286,7 +284,7 @@ class TestAddFunction:
         _add("/tmp/test.csv")
         assert mock_df.to_csv.call_args[1]["header"] is False
 
-    @patch("scitex.resource._log_processor_usages.get_processor_usages")
+    @patch("scitex_resource._log_processor_usages.get_processor_usages")
     def test_file_error_handling(self, mock_get_usage):
         """Test error handling when file cannot be opened."""
         mock_get_usage.return_value = Mock()
@@ -313,7 +311,7 @@ class TestIntegration:
                 content = f.read()
                 assert "Timestamp,CPU [%],RAM [GiB],GPU [%],VRAM [GiB]" in content
 
-    @patch("scitex.resource._log_processor_usages.get_processor_usages")
+    @patch("scitex_resource._log_processor_usages.get_processor_usages")
     def test_csv_format_validation(self, mock_get_usage):
         """Test that generated CSV has correct format."""
         # Mock realistic processor usage data
@@ -347,8 +345,8 @@ class TestIntegration:
             ]
             assert df.iloc[0]["CPU [%]"] == 25.3
 
-    @patch("scitex.resource._log_processor_usages.time.sleep")
-    @patch("scitex.resource._log_processor_usages.get_processor_usages")
+    @patch("scitex_resource._log_processor_usages.time.sleep")
+    @patch("scitex_resource._log_processor_usages.get_processor_usages")
     def test_minimal_logging_session(self, mock_get_usage, mock_sleep):
         """Test minimal logging session with mocked time.sleep."""
         mock_data = pd.DataFrame(

@@ -216,7 +216,7 @@ def _ensure_log_file(path: str, init: bool) -> None:
         _create_path(path)
     elif init:
         try:
-            sh(f"rm -f {path}")
+            os.remove(path)
             _create_path(path)
         except Exception as err:
             raise RuntimeError(f"Failed to init log file: {err}")
