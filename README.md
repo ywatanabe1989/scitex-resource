@@ -9,7 +9,7 @@
 <p align="center"><b>System resource info, processor usage logging, RAM limiting + machine-identity config.</b></p>
 
 <p align="center">
-  <a href="https://scitex-resource.readthedocs.io/">Full Documentation</a> · <code>pip install scitex-resource</code>
+  <a href="https://scitex-resource.readthedocs.io/">Full Documentation</a> · <code>uv pip install scitex-resource[all]</code>
 </p>
 
 <!-- scitex-badges:start -->
