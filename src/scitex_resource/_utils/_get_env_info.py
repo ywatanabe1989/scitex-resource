@@ -9,12 +9,10 @@ import subprocess
 import sys
 from collections import namedtuple
 
-try:
-    import torch
+from scitex_dev import try_import_optional
 
-    TORCH_AVAILABLE = True
-except (ImportError, NameError, AttributeError, OSError):
-    TORCH_AVAILABLE = False
+torch = try_import_optional("torch")
+TORCH_AVAILABLE = torch is not None
 
 # System Environment Information
 SystemEnv = namedtuple(

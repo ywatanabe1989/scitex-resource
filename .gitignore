@@ -8,6 +8,8 @@ dist/
 .pytest_cache/
 .ruff_cache/
 .coverage
+.coverage.*
+coverage.xml
 htmlcov/
 .tox/
 .mypy_cache/
@@ -18,3 +20,9 @@ docs/sphinx/_build/
 docs/sphinx/api/
 *.swp
 .DS_Store
+
+# Local state (track audit-tool config, ignore the rest)
+.scitex/*
+!.scitex/dev/
+.scitex/dev/*
+!.scitex/dev/config.yaml
