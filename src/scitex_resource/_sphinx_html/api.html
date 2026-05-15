@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>API &mdash; scitex-resource 0.3.4 documentation</title>
+  <title>API &mdash; scitex-resource 0.4.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
@@ -14,7 +14,7 @@
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=1e28cc32"></script>
+      <script src="_static/documentation_options.js?v=6c02275b"></script>
       <script src="_static/doctools.js?v=fd6eb6e6"></script>
       <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -50,10 +50,10 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">API</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#scitex_resource.get_machine_config"><code class="docutils literal notranslate"><span class="pre">get_machine_config()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#scitex_resource.get_machine_name"><code class="docutils literal notranslate"><span class="pre">get_machine_name()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#scitex_resource.load_config"><code class="docutils literal notranslate"><span class="pre">load_config()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#scitex_resource.get_metrics"><code class="docutils literal notranslate"><span class="pre">get_metrics()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#scitex_resource.get_processor_usages"><code class="docutils literal notranslate"><span class="pre">get_processor_usages()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#scitex_resource.get_specs"><code class="docutils literal notranslate"><span class="pre">get_specs()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#scitex_resource.load_config"><code class="docutils literal notranslate"><span class="pre">load_config()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#scitex_resource.log_processor_usages"><code class="docutils literal notranslate"><span class="pre">log_processor_usages()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#scitex_resource.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
 </ul>
@@ -90,6 +90,10 @@
   <section id="module-scitex_resource">
 <span id="api"></span><h1>API<a class="headerlink" href="#module-scitex_resource" title="Link to this heading"></a></h1>
 <p>scitex-resource — system resource info, monitoring, RAM limit (standalone).</p>
+<p>Public API is loaded lazily via PEP 562 <cite>__getattr__</cite> so <cite>import
+scitex_resource</cite> stays fast (&lt;100ms cold-start) — Click runs the CLI
+program once per Tab press for completion, and pulling in
+matplotlib/psutil/yaml at top-level made that path ~2s slow.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="scitex_resource.get_machine_config">
 <span class="sig-prename descclassname"><span class="pre">scitex_resource.</span></span><span class="sig-name descname"><span class="pre">get_machine_config</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/scitex_resource/_machine.html#get_machine_config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scitex_resource.get_machine_config" title="Link to this definition"></a></dt>
@@ -110,6 +114,18 @@ non-empty string — the short hostname is the last-resort fallback.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="scitex_resource.load_config">
+<span class="sig-prename descclassname"><span class="pre">scitex_resource.</span></span><span class="sig-name descname"><span class="pre">load_config</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/scitex_resource/_machine.html#load_config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scitex_resource.load_config" title="Link to this definition"></a></dt>
+<dd><p>Return the merged config dict — project file overrides user file.</p>
+<p>Empty dict if no config files exist or PyYAML isn’t installed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]</span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -207,18 +223,6 @@ there’s no GPU or when you cache GPU info separately.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Raises<span class="colon">:</span></dt>
 <dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#PermissionError" title="(in Python v3.14)"><strong>PermissionError</strong></a> – If the function lacks necessary permissions to access certain system information, especially disk and network details.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="scitex_resource.load_config">
-<span class="sig-prename descclassname"><span class="pre">scitex_resource.</span></span><span class="sig-name descname"><span class="pre">load_config</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/scitex_resource/_machine.html#load_config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scitex_resource.load_config" title="Link to this definition"></a></dt>
-<dd><p>Return the merged config dict — project file overrides user file.</p>
-<p>Empty dict if no config files exist or PyYAML isn’t installed.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]</span></p>
 </dd>
 </dl>
 </dd></dl>

@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>scitex_resource._machine &mdash; scitex-resource 0.3.4 documentation</title>
+  <title>scitex_resource._machine &mdash; scitex-resource 0.4.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
@@ -13,7 +13,7 @@
   
       <script src="../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../_static/documentation_options.js?v=1e28cc32"></script>
+      <script src="../../_static/documentation_options.js?v=6c02275b"></script>
       <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -124,10 +124,23 @@
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_config_paths</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Path</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Search order for ``config.yaml`` — project scope first, user fallback.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Search order for ``config.yaml`` — project scope first, user fallback.</span>
+
+<span class="sd">    The project search walks from cwd up to (but stops AT) ``$HOME`` so</span>
+<span class="sd">    the user&#39;s ``~/.scitex/&lt;pkg&gt;/config.yaml`` is not mistaken for a</span>
+<span class="sd">    project hit when cwd happens to live under home (which it almost</span>
+<span class="sd">    always does on a workstation).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">paths</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Path</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">cwd_root</span> <span class="o">=</span> <span class="n">Path</span><span class="o">.</span><span class="n">cwd</span><span class="p">()</span>
+    <span class="n">home</span> <span class="o">=</span> <span class="n">Path</span><span class="o">.</span><span class="n">home</span><span class="p">()</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
     <span class="k">for</span> <span class="n">parent</span> <span class="ow">in</span> <span class="p">(</span><span class="n">cwd_root</span><span class="p">,</span> <span class="o">*</span><span class="n">cwd_root</span><span class="o">.</span><span class="n">parents</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">resolved</span> <span class="o">=</span> <span class="n">parent</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
+            <span class="n">resolved</span> <span class="o">=</span> <span class="n">parent</span>
+        <span class="k">if</span> <span class="n">resolved</span> <span class="o">==</span> <span class="n">home</span><span class="p">:</span>
+            <span class="k">break</span>
         <span class="n">candidate</span> <span class="o">=</span> <span class="n">parent</span> <span class="o">/</span> <span class="s2">&quot;.scitex&quot;</span> <span class="o">/</span> <span class="n">_PKG_SHORT</span> <span class="o">/</span> <span class="s2">&quot;config.yaml&quot;</span>
         <span class="k">if</span> <span class="n">candidate</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
             <span class="n">paths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">candidate</span><span class="p">)</span>
