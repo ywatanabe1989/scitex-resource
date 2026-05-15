@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>scitex_resource._machine &mdash; scitex-resource 0.4.0 documentation</title>
+  <title>scitex_resource._machine &mdash; scitex-resource 0.4.1 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
@@ -13,7 +13,7 @@
   
       <script src="../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../_static/documentation_options.js?v=6c02275b"></script>
+      <script src="../../_static/documentation_options.js?v=c87aa342"></script>
       <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -75,143 +75,82 @@
            <div itemprop="articleBody">
              
   <h1>Source code for scitex_resource._machine</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;Machine identity — canonical name and per-host config.</span>
+<span></span><span class="sd">&quot;&quot;&quot;Deprecated alias module — use :mod:`scitex_resource._host` instead.</span>
 
-<span class="sd">scitex-resource owns the question &quot;what machine am I running on?&quot;. Other</span>
-<span class="sd">scitex-* packages (scitex-orochi, scitex-hpc, scitex-agent-container)</span>
-<span class="sd">consume :func:`get_machine_name` so every package agrees on the same</span>
-<span class="sd">canonical name regardless of how the OS reports it (FQDN drift,</span>
-<span class="sd">``Yusukes-MacBook-Air`` vs ``mba``, login-node vs compute-node, etc.).</span>
+<span class="sd">This module is kept for back-compat. The canonical API moved to</span>
+<span class="sd">``scitex_resource._host``:</span>
 
-<span class="sd">Resolution cascade (highest precedence first):</span>
+<span class="sd">* :func:`get_machine_name` → :func:`scitex_resource.get_host_name`</span>
+<span class="sd">* :func:`get_machine_config` → :func:`scitex_resource.get_host_config`</span>
 
-<span class="sd">    1. ``$SCITEX_RESOURCE_MACHINE`` env var</span>
-<span class="sd">    2. ``&lt;project&gt;/.scitex/resource/config.yaml`` ``machine.canonical_name``</span>
-<span class="sd">    3. ``~/.scitex/resource/config.yaml`` ``machine.canonical_name``</span>
-<span class="sd">    4. Short hostname (``socket.gethostname().split(&quot;.&quot;, 1)[0]``)</span>
-
-<span class="sd">The same chain applies to :func:`get_machine_config` which returns the</span>
-<span class="sd">full ``machine:`` block including ``aliases``, ``role``, ``hpc.*``.</span>
-
-<span class="sd">Config schema (``~/.scitex/resource/config.yaml`` — example for a SLURM</span>
-<span class="sd">login node):</span>
-
-<span class="sd">    machine:</span>
-<span class="sd">      canonical_name: spartan</span>
-<span class="sd">      aliases:</span>
-<span class="sd">        - spartan-login1.hpc.example.edu</span>
-<span class="sd">        - spartan-login1</span>
-<span class="sd">      role: hpc-login</span>
-<span class="sd">      hpc:</span>
-<span class="sd">        cluster: spartan</span>
-<span class="sd">        login_only: true        # don&#39;t surface login-node CPU as available</span>
-<span class="sd">        partitions: [physical, sapphire]</span>
-
-<span class="sd">This file is part of the scitex local-state convention — see the</span>
-<span class="sd">``arch-local-state-directories`` skill in scitex-python for the full</span>
-<span class="sd">``.scitex/&lt;pkg-short&gt;/`` layout (config tracked, ``runtime/`` ignored).</span>
+<span class="sd">Importing this module still works (no warning at import time so cold</span>
+<span class="sd">import paths stay quiet); the deprecation fires only when the legacy</span>
+<span class="sd">function names are actually called.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
-<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">socket</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
 
-<span class="n">_PKG_SHORT</span> <span class="o">=</span> <span class="s2">&quot;resource&quot;</span>
-<span class="n">_ENV_VAR</span> <span class="o">=</span> <span class="s2">&quot;SCITEX_RESOURCE_MACHINE&quot;</span>
+<span class="c1"># Re-export the underlying helpers + names used by tests / CLI internals.</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">._host</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>  <span class="c1"># noqa: F401</span>
+    <span class="n">_ENV_VAR_LEGACY</span> <span class="k">as</span> <span class="n">_ENV_VAR</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">._host</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">_PKG_SHORT</span><span class="p">,</span>
+    <span class="n">_config_paths</span><span class="p">,</span>
+    <span class="n">_load_yaml</span><span class="p">,</span>
+    <span class="n">_short_hostname</span><span class="p">,</span>
+    <span class="n">get_host_config</span><span class="p">,</span>
+    <span class="n">get_host_name</span><span class="p">,</span>
+    <span class="n">load_config</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">_DEPRECATION_EMITTED</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_config_paths</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Path</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Search order for ``config.yaml`` — project scope first, user fallback.</span>
-
-<span class="sd">    The project search walks from cwd up to (but stops AT) ``$HOME`` so</span>
-<span class="sd">    the user&#39;s ``~/.scitex/&lt;pkg&gt;/config.yaml`` is not mistaken for a</span>
-<span class="sd">    project hit when cwd happens to live under home (which it almost</span>
-<span class="sd">    always does on a workstation).</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">paths</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Path</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="n">cwd_root</span> <span class="o">=</span> <span class="n">Path</span><span class="o">.</span><span class="n">cwd</span><span class="p">()</span>
-    <span class="n">home</span> <span class="o">=</span> <span class="n">Path</span><span class="o">.</span><span class="n">home</span><span class="p">()</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
-    <span class="k">for</span> <span class="n">parent</span> <span class="ow">in</span> <span class="p">(</span><span class="n">cwd_root</span><span class="p">,</span> <span class="o">*</span><span class="n">cwd_root</span><span class="o">.</span><span class="n">parents</span><span class="p">):</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="n">resolved</span> <span class="o">=</span> <span class="n">parent</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
-        <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
-            <span class="n">resolved</span> <span class="o">=</span> <span class="n">parent</span>
-        <span class="k">if</span> <span class="n">resolved</span> <span class="o">==</span> <span class="n">home</span><span class="p">:</span>
-            <span class="k">break</span>
-        <span class="n">candidate</span> <span class="o">=</span> <span class="n">parent</span> <span class="o">/</span> <span class="s2">&quot;.scitex&quot;</span> <span class="o">/</span> <span class="n">_PKG_SHORT</span> <span class="o">/</span> <span class="s2">&quot;config.yaml&quot;</span>
-        <span class="k">if</span> <span class="n">candidate</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
-            <span class="n">paths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">candidate</span><span class="p">)</span>
-            <span class="k">break</span>
-    <span class="n">user_root</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;SCITEX_DIR&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">Path</span><span class="o">.</span><span class="n">home</span><span class="p">()</span> <span class="o">/</span> <span class="s2">&quot;.scitex&quot;</span><span class="p">))</span>
-    <span class="n">user</span> <span class="o">=</span> <span class="n">user_root</span> <span class="o">/</span> <span class="n">_PKG_SHORT</span> <span class="o">/</span> <span class="s2">&quot;config.yaml&quot;</span>
-    <span class="k">if</span> <span class="n">user</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
-        <span class="n">paths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">paths</span>
-
-
-<span class="k">def</span><span class="w"> </span><span class="nf">_load_yaml</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="kn">import</span><span class="w"> </span><span class="nn">yaml</span>
-    <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
-        <span class="k">return</span> <span class="p">{}</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">yaml</span><span class="o">.</span><span class="n">safe_load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}</span>
-    <span class="k">except</span> <span class="p">(</span><span class="ne">OSError</span><span class="p">,</span> <span class="n">yaml</span><span class="o">.</span><span class="n">YAMLError</span><span class="p">):</span>
-        <span class="k">return</span> <span class="p">{}</span>
-
-
-<div class="viewcode-block" id="load_config">
-<a class="viewcode-back" href="../../api/scitex_resource.html#scitex_resource.load_config">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">load_config</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return the merged config dict — project file overrides user file.</span>
-
-<span class="sd">    Empty dict if no config files exist or PyYAML isn&#39;t installed.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">merged</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="n">_config_paths</span><span class="p">()):</span>
-        <span class="n">data</span> <span class="o">=</span> <span class="n">_load_yaml</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
-        <span class="n">merged</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">merged</span></div>
-
+<span class="k">def</span><span class="w"> </span><span class="nf">_warn_once</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">replacement</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">_DEPRECATION_EMITTED</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="n">_DEPRECATION_EMITTED</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">&quot;scitex_resource.</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> is deprecated; use scitex_resource.</span><span class="si">{</span><span class="n">replacement</span><span class="si">}</span><span class="s2"> instead.&quot;</span><span class="p">,</span>
+        <span class="ne">DeprecationWarning</span><span class="p">,</span>
+        <span class="n">stacklevel</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+    <span class="p">)</span>
 
 
 <div class="viewcode-block" id="get_machine_config">
 <a class="viewcode-back" href="../../api/scitex_resource.html#scitex_resource.get_machine_config">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">get_machine_config</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return the ``machine:`` block from config, or ``{}``.&quot;&quot;&quot;</span>
-    <span class="n">cfg</span> <span class="o">=</span> <span class="n">load_config</span><span class="p">()</span>
-    <span class="k">return</span> <span class="n">cfg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;machine&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}</span></div>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Deprecated alias for :func:`get_host_config`.&quot;&quot;&quot;</span>
+    <span class="n">_warn_once</span><span class="p">(</span><span class="s2">&quot;get_machine_config&quot;</span><span class="p">,</span> <span class="s2">&quot;get_host_config&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">get_host_config</span><span class="p">()</span></div>
 
 
 
 <div class="viewcode-block" id="get_machine_name">
 <a class="viewcode-back" href="../../api/scitex_resource.html#scitex_resource.get_machine_name">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">get_machine_name</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return the canonical machine name.</span>
-
-<span class="sd">    See module docstring for the resolution cascade. Always returns a</span>
-<span class="sd">    non-empty string — the short hostname is the last-resort fallback.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">env</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">_ENV_VAR</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
-    <span class="k">if</span> <span class="n">env</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">env</span>
-    <span class="n">cfg</span> <span class="o">=</span> <span class="n">get_machine_config</span><span class="p">()</span>
-    <span class="n">canonical</span> <span class="o">=</span> <span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;canonical_name&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
-    <span class="k">if</span> <span class="n">canonical</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">canonical</span>
-    <span class="k">return</span> <span class="n">_short_hostname</span><span class="p">()</span></div>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Deprecated alias for :func:`get_host_name`.&quot;&quot;&quot;</span>
+    <span class="n">_warn_once</span><span class="p">(</span><span class="s2">&quot;get_machine_name&quot;</span><span class="p">,</span> <span class="s2">&quot;get_host_name&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">get_host_name</span><span class="p">()</span></div>
 
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_short_hostname</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">socket</span><span class="o">.</span><span class="n">gethostname</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">or</span> <span class="s2">&quot;unknown&quot;</span>
-    <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
-        <span class="k">return</span> <span class="s2">&quot;unknown&quot;</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;get_machine_config&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;get_machine_name&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;get_host_config&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;get_host_name&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;load_config&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;_PKG_SHORT&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;_ENV_VAR&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;_config_paths&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;_load_yaml&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;_short_hostname&quot;</span><span class="p">,</span>
+<span class="p">]</span>
 </pre></div>
 
            </div>
