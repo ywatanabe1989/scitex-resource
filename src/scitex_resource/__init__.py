@@ -26,9 +26,14 @@ except ImportError:  # pragma: no cover — only on ancient Pythons
 
 _LAZY = {
     # name → (relative module, attribute)
+    # Canonical (host-based) API.
+    "get_host_config": ("._host", "get_host_config"),
+    "get_host_name": ("._host", "get_host_name"),
+    "load_config": ("._host", "load_config"),
+    # Deprecated machine-based aliases (kept for back-compat — emit a
+    # DeprecationWarning on call, see _machine.py).
     "get_machine_config": ("._machine", "get_machine_config"),
     "get_machine_name": ("._machine", "get_machine_name"),
-    "load_config": ("._machine", "load_config"),
     "get_metrics": ("._specs", "get_metrics"),
     "get_processor_usages": ("._specs", "get_processor_usages"),
     "get_specs": ("._specs", "get_specs"),
@@ -55,6 +60,7 @@ def __dir__() -> list[str]:
 
 
 if TYPE_CHECKING:  # pragma: no cover — IDE / static-check support
+    from ._host import get_host_config, get_host_name, load_config
     from ._log_processor_usages import log_processor_usages, main
-    from ._machine import get_machine_config, get_machine_name, load_config
+    from ._machine import get_machine_config, get_machine_name
     from ._specs import get_metrics, get_processor_usages, get_specs

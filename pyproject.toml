@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "scitex-resource"
-version = "0.4.0"
+version = "0.4.1"
 description = "System resource info, processor usage logging, RAM limit — standalone module from the SciTeX ecosystem"
 readme = "README.md"
 license = "AGPL-3.0-only"
@@ -28,6 +28,9 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+cli = [
+    "ruamel.yaml>=0.18",
+]
 sh = [
     "scitex-sh>=0.1.0",
 ]
@@ -38,6 +41,7 @@ dev = [
     "pytest",
     "pytest-cov",
     "ruff",
+    "ruamel.yaml>=0.18",  # CLI `machine config` round-trip YAML writes
     "scitex-sh>=0.1.0",  # tests/integration/test_cross_package_imports.py
 ]
 docs = [

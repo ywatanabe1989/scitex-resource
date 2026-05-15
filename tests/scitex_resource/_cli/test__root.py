@@ -57,13 +57,13 @@ def test_help_recursive_includes_subcommand_help():
     assert "specs show" in result.output
 
 
-def test_list_commands_includes_machine_show():
+def test_list_commands_includes_hosts_show():
     # Arrange
     runner = CliRunner()
     # Act
     result = runner.invoke(cli, ["list-commands"])
     # Assert
-    assert "machine show" in result.output
+    assert "hosts show" in result.output
 
 
 def test_list_commands_json_is_parseable():

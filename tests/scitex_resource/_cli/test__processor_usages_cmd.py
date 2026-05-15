@@ -40,6 +40,17 @@ def test_show_json_is_a_list():
     assert isinstance(json.loads(result.output), list)
 
 
+def test_show_yaml_parses_with_safe_load():
+    # Arrange
+    import yaml as _yaml
+
+    runner = CliRunner()
+    # Act
+    result = runner.invoke(cli, ["processor-usages", "show", "--yaml"])
+    # Assert
+    assert isinstance(_yaml.safe_load(result.output), list)
+
+
 def test_show_csv_first_line_contains_timestamp():
     # Arrange
     runner = CliRunner()

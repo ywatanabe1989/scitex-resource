@@ -24,7 +24,7 @@ PKG = "scitex-resource"
 
 
 COMMAND_CATEGORIES = [
-    ("Machine", ["machine"]),
+    ("Hosts", ["hosts"]),
     ("Specs & Metrics", ["specs", "metrics", "processor-usages"]),
     ("RAM Limit", ["ram-limit"]),
     ("Introspection", ["list-python-apis", "list-commands", "mcp", "skills"]),
@@ -113,10 +113,10 @@ def cli(ctx: click.Context, help_recursive: bool, as_json: bool) -> None:
     """scitex-resource - System resource info, processor-usage logging, RAM limit.
 
     \b
-    Machine identity, specs and live metrics are read via psutil + nvidia-smi.
-    Per-host config can override the canonical machine name; see:
-      ~/.scitex/resource/config.yaml  (machine.canonical_name, aliases, role)
-    or set $SCITEX_RESOURCE_MACHINE to short-circuit.
+    Host identity, specs and live metrics are read via psutil + nvidia-smi.
+    Per-host config can override the canonical host name; see:
+      ~/.scitex/resource/config.yaml  (host.canonical_name, aliases, role)
+    or set $SCITEX_RESOURCE_HOST to short-circuit.
     """
     ctx.ensure_object(dict)
     ctx.obj["as_json"] = as_json
@@ -130,8 +130,9 @@ def cli(ctx: click.Context, help_recursive: bool, as_json: bool) -> None:
 # Wire subcommands. Imports are at the bottom to avoid circular imports.
 from ._apis import list_python_apis as _list_python_apis  # noqa: E402
 from ._completion import attach_shell_completion  # noqa: E402
+from ._hosts_cmd import hosts as _hosts_grp  # noqa: E402
+from ._hosts_cmd import machine as _machine_grp  # noqa: E402
 from ._introspection import list_commands as _list_commands  # noqa: E402
-from ._machine_cmd import machine as _machine_grp  # noqa: E402
 from ._mcp_commands import mcp_group as _mcp_group  # noqa: E402
 from ._metrics_cmd import metrics as _metrics_grp  # noqa: E402
 from ._processor_usages_cmd import processor_usages as _proc_grp  # noqa: E402
@@ -139,6 +140,7 @@ from ._ram_limit_cmd import ram_limit as _ram_grp  # noqa: E402
 from ._skills_cmd import skills_group as _skills_group  # noqa: E402
 from ._specs_cmd import specs as _specs_grp  # noqa: E402
 
+cli.add_command(_hosts_grp)
 cli.add_command(_machine_grp)
 cli.add_command(_specs_grp)
 cli.add_command(_metrics_grp)

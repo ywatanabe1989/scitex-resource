@@ -1,4 +1,8 @@
-"""``scitex-resource processor-usages`` group — show / log."""
+"""``scitex-resource processor-usages`` group — show / log.
+
+Default human-readable (pandas ``to_string``); ``--json`` for scripts,
+``--yaml`` for ``yq`` pipelines, ``--csv`` for spreadsheet ingest.
+"""
 
 from __future__ import annotations
 
@@ -12,13 +16,17 @@ from .._specs import get_processor_usages
 
 @click.group("processor-usages")
 def processor_usages() -> None:
-    """Single-sample / time-series processor usage (CPU/RAM/GPU/VRAM)."""
+    """Processor usage snapshots / time-series (default human-readable; --json for programmatic use, --yaml for yq pipelines)."""
 
 
 @processor_usages.command("show")
-@click.option("--json", "as_json", is_flag=True, help="Emit JSON output.")
+@click.option("--json", "as_json", is_flag=True, help="Emit strict JSON output.")
+@click.option("--yaml", "as_yaml", is_flag=True, help="Emit YAML output.")
 @click.option("--csv", "as_csv", is_flag=True, help="Emit CSV output.")
-def processor_usages_show(as_json: bool, as_csv: bool) -> None:
+@click.pass_context
+def processor_usages_show(
+    ctx: click.Context, as_json: bool, as_yaml: bool, as_csv: bool
+) -> None:
     """Take one snapshot and print it.
 
     \b
@@ -27,15 +35,30 @@ def processor_usages_show(as_json: bool, as_csv: bool) -> None:
       $ scitex-resource processor-usages show --json
       $ scitex-resource processor-usages show --csv
     """
+    parent_as_json = bool(ctx.obj and ctx.obj.get("as_json"))
+    as_json = as_json or parent_as_json
     df = get_processor_usages()
     if as_json:
         records = df.to_dict(orient="records")
         click.echo(_json.dumps(records, indent=2, default=str))
         return
+    if as_yaml:
+        import yaml as _yaml
+
+        records = df.to_dict(orient="records")
+        click.echo(
+            _yaml.safe_dump(records, sort_keys=False, default_flow_style=False).rstrip()
+        )
+        return
     if as_csv:
         click.echo(df.to_csv(index=False).rstrip())
         return
-    click.echo(df.to_string(index=False))
+    # Default human shape: aligned columns + thousand-separators for large ints.
+    formatters = {}
+    for col in df.columns:
+        if df[col].dtype.kind in ("i", "u"):
+            formatters[col] = lambda v: f"{v:,}" if abs(v) >= 1000 else str(v)
+    click.echo(df.to_string(index=False, formatters=formatters or None))
 
 
 @processor_usages.command("log")
