@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "scitex-resource"
-version = "0.3.4"
+version = "0.4.0"
 description = "System resource info, processor usage logging, RAM limit — standalone module from the SciTeX ecosystem"
 readme = "README.md"
 license = "AGPL-3.0-only"
@@ -19,6 +19,7 @@ classifiers = [
     "Topic :: System :: Hardware",
 ]
 dependencies = [
+    "click>=8.0",
     "pandas",
     "psutil",
     "PyYAML",
@@ -29,6 +30,9 @@ dependencies = [
 [project.optional-dependencies]
 sh = [
     "scitex-sh>=0.1.0",
+]
+mcp = [
+    "fastmcp>=0.1.0",
 ]
 dev = [
     "pytest",
@@ -44,8 +48,12 @@ docs = [
     "sphinx-autodoc-typehints>=1.25",
 ]
 all = [
-    "scitex-resource[sh]",
+    "scitex-resource[sh,mcp]",
 ]
+
+[project.scripts]
+scitex-resource = "scitex_resource._cli:main"
+scitex-resource-mcp = "scitex_resource._mcp.server:main"
 
 [project.urls]
 Homepage = "https://github.com/ywatanabe1989/scitex-resource"

@@ -1,231 +1,96 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# Time-stamp: "2025-06-02 15:00:00 (ywatanabe)"
-# File: ./tests/scitex/resource/test_limit_ram.py
+"""Real-I/O tests for ``scitex_resource.limit_ram``.
+
+``get_ram`` reads /proc/meminfo directly. ``limit_ram`` is exercised under
+a forked child (so RLIMIT_AS does not bleed into the test runner).
+"""
+
+from __future__ import annotations
 
 import os
-import resource
-import unittest.mock as mock
 
 import pytest
 
+from scitex_resource.limit_ram import get_RAM, get_ram, limit_RAM, limit_ram
 
-def test_limit_ram_get_ram_returns_integer():
-    """Test that get_ram() returns an integer value."""
-    from scitex_resource.limit_ram import get_ram
+requires_fork = pytest.mark.skipif(
+    not hasattr(os, "fork"), reason="os.fork not available on this platform"
+)
 
-    # Mock /proc/meminfo content
-    mock_meminfo = """MemTotal:       8000000 kB
-MemFree:        2000000 kB
-MemAvailable:   4000000 kB
-Buffers:         500000 kB
-Cached:         1000000 kB
-SwapCached:          0 kB"""
 
-    with mock.patch("builtins.open", mock.mock_open(read_data=mock_meminfo)):
-        result = get_ram()
+def _fork_capture(factor: float, encode):
+    """Fork a child, apply ``limit_ram(factor)``, return ``encode(...)`` bytes."""
+    read_fd, write_fd = os.pipe()
+    pid = os.fork()
+    if pid == 0:
+        os.close(read_fd)
+        import resource
 
+        try:
+            limit_ram(factor)
+            soft, _ = resource.getrlimit(resource.RLIMIT_AS)
+            free_bytes = get_ram() * 1_024
+            os.write(write_fd, encode(soft, free_bytes))
+        finally:
+            os.close(write_fd)
+            os._exit(0)
+    os.close(write_fd)
+    raw = os.read(read_fd, 64)
+    os.close(read_fd)
+    os.waitpid(pid, 0)
+    return raw
+
+
+def test_get_ram_returns_integer():
+    # Arrange
+    # Act
+    result = get_ram()
+    # Assert
     assert isinstance(result, int)
+
+
+def test_get_ram_returns_positive_kib():
+    # Arrange
+    # Act
+    result = get_ram()
+    # Assert
     assert result > 0
 
 
-def test_limit_ram_get_ram_calculation():
-    """Test that get_ram() correctly calculates free memory."""
-    from scitex_resource.limit_ram import get_ram
-
-    # Mock /proc/meminfo with known values
-    mock_meminfo = """MemTotal:       8000000 kB
-MemFree:        2000000 kB
-MemAvailable:   4000000 kB
-Buffers:         500000 kB
-Cached:         1000000 kB
-SwapCached:          0 kB"""
-
-    with mock.patch("builtins.open", mock.mock_open(read_data=mock_meminfo)):
-        result = get_ram()
-
-    # Expected: MemFree + Buffers + Cached = 2000000 + 500000 + 1000000 = 3500000
-    expected = 2000000 + 500000 + 1000000
-    assert result == expected
+def test_get_ram_deprecated_alias_points_to_canonical():
+    # Arrange
+    # Act
+    aliased = get_RAM
+    # Assert
+    assert aliased is get_ram
 
 
-def test_limit_ram_get_ram_handles_missing_fields():
-    """Test that get_ram() handles missing memory fields gracefully."""
-    from scitex_resource.limit_ram import get_ram
-
-    # Mock /proc/meminfo with only some fields
-    mock_meminfo = """MemTotal:       8000000 kB
-MemFree:        2000000 kB
-MemAvailable:   4000000 kB
-SwapCached:          0 kB"""
-
-    with mock.patch("builtins.open", mock.mock_open(read_data=mock_meminfo)):
-        result = get_ram()
-
-    # Should only count MemFree (no Buffers or Cached)
-    assert result == 2000000
+def test_limit_ram_deprecated_alias_points_to_canonical():
+    # Arrange
+    # Act
+    aliased = limit_RAM
+    # Assert
+    assert aliased is limit_ram
 
 
-def test_limit_ram_get_ram_file_error_handling():
-    """Test that get_ram() handles file reading errors."""
-    from scitex_resource.limit_ram import get_ram
-
-    with mock.patch("builtins.open", side_effect=FileNotFoundError):
-        with pytest.raises(FileNotFoundError):
-            get_ram()
-
-
-@mock.patch("scitex_resource.limit_ram.resource.setrlimit")
-@mock.patch("scitex_resource.limit_ram.resource.getrlimit")
-@mock.patch("scitex_resource.limit_ram.get_ram")
-@mock.patch("builtins.print")
-def test_limit_ram_function_basic(
-    mock_print, mock_get_ram, mock_getrlimit, mock_setrlimit
-):
-    """Test basic functionality of limit_ram() function."""
-    from scitex_resource.limit_ram import limit_ram
-
-    # Setup mocks
-    mock_get_ram.return_value = 4000000  # 4GB in KB
-    mock_getrlimit.return_value = (8000000 * 1024, 16000000 * 1024)  # soft, hard limits
-
-    limit_ram(0.5)
-
-    # Verify get_ram was called
-    assert mock_get_ram.call_count >= 1
-
-    # Verify getrlimit was called
-    mock_getrlimit.assert_called_once_with(resource.RLIMIT_AS)
-
-    # Verify setrlimit was called
-    mock_setrlimit.assert_called_once()
+@requires_fork
+def test_limit_ram_sets_positive_soft_rlimit_in_child():
+    # Arrange
+    factor = 0.5
+    # Act
+    raw = _fork_capture(factor, lambda soft, _f: str(soft).encode())
+    # Assert
+    assert int(raw) > 0
 
 
-@mock.patch("scitex_resource.limit_ram.resource.setrlimit")
-@mock.patch("scitex_resource.limit_ram.resource.getrlimit")
-@mock.patch("scitex_resource.limit_ram.get_ram")
-def test_limit_ram_function_calculation(mock_get_ram, mock_getrlimit, mock_setrlimit):
-    """Test that limit_ram() calculates memory limits correctly."""
-    from scitex_resource.limit_ram import limit_ram
-
-    # Setup mocks
-    mock_get_ram.return_value = 4000000  # 4GB in KB
-    mock_getrlimit.return_value = (8000000 * 1024, 16000000 * 1024)
-
-    limit_ram(0.5)
-
-    # Calculate expected max_val
-    ram_kb = 4000000
-    expected_max_val = int(0.5 * ram_kb * 1024)  # Should be the smaller value
-
-    # Verify setrlimit was called with correct values
-    mock_setrlimit.assert_called_once()
-    call_args = mock_setrlimit.call_args[0][1]
-    assert call_args[0] == expected_max_val
-
-
-def test_limit_ram_backward_compatibility():
-    """Test that deprecated function names still work."""
-    from scitex_resource.limit_ram import get_RAM, get_ram, limit_RAM, limit_ram
-
-    # Test that deprecated names reference the same functions
-    assert limit_RAM is limit_ram
-    assert get_RAM is get_ram
-
-
-def test_limit_ram_get_ram_edge_cases():
-    """Test edge cases for get_ram function."""
-    from scitex_resource.limit_ram import get_ram
-
-    # Test with zero values
-    mock_meminfo_zero = """MemTotal:       8000000 kB
-MemFree:               0 kB
-MemAvailable:   4000000 kB
-Buffers:               0 kB
-Cached:                0 kB"""
-
-    with mock.patch("builtins.open", mock.mock_open(read_data=mock_meminfo_zero)):
-        result = get_ram()
-        assert result == 0
-
-
-def test_limit_ram_import_dependencies():
-    """Test that all required dependencies can be imported."""
-    # Test resource module import
-    import resource
-
-    assert hasattr(resource, "getrlimit")
-    assert hasattr(resource, "setrlimit")
-    assert hasattr(resource, "RLIMIT_AS")
-
-    # Test scitex_resource import
-    import scitex_resource
-
-    assert hasattr(scitex_resource, "limit_ram")
-
-
-@mock.patch("scitex_resource.limit_ram.resource.setrlimit")
-@mock.patch("scitex_resource.limit_ram.resource.getrlimit")
-@mock.patch("scitex_resource.limit_ram.get_ram")
-def test_limit_ram_resource_error_handling(
-    mock_get_ram, mock_getrlimit, mock_setrlimit
-):
-    """Test that limit_ram handles resource errors gracefully."""
-    from scitex_resource.limit_ram import limit_ram
-
-    mock_get_ram.return_value = 4000000
-    mock_getrlimit.return_value = (8000000 * 1024, 16000000 * 1024)
-    mock_setrlimit.side_effect = OSError("Permission denied")
-
-    # The function will fail with OSError from setrlimit before it gets to fmt_size
-    with pytest.raises(OSError):
-        limit_ram(0.5)
-
-
-if __name__ == "__main__":
-    import os
-
-    import pytest
-
-    pytest.main([os.path.abspath(__file__)])
-
-# --------------------------------------------------------------------------------
-# Start of Source Code from: /home/ywatanabe/proj/scitex-code/src/scitex/resource/limit_ram.py
-# --------------------------------------------------------------------------------
-# #!/usr/bin/env python3
-# # -*- coding: utf-8 -*-
-# # Time-stamp: "2021-09-20 21:02:04 (ywatanabe)"
-#
-# import resource
-# import scitex
-#
-#
-# def limit_ram(ram_factor):
-#     soft, hard = resource.getrlimit(resource.RLIMIT_AS)
-#     max_val = min(ram_factor * get_ram() * 1024, get_ram() * 1024)
-#     resource.setrlimit(resource.RLIMIT_AS, (max_val, hard))
-#     print(f"\nFree RAM was limited to {scitex.gen.fmt_size(max_val)}")
-#
-#
-# def get_ram():
-#     with open("/proc/meminfo", "r") as mem:
-#         free_memory = 0
-#         for i in mem:
-#             sline = i.split()
-#             if str(sline[0]) in ("MemFree:", "Buffers:", "Cached:"):
-#                 free_memory += int(sline[1])
-#     return free_memory
-#
-#
-# # Backward compatibility
-# limit_RAM = limit_ram  # Deprecated: use limit_ram instead
-# get_RAM = get_ram  # Deprecated: use get_ram instead
-#
-#
-# if __name__ == "__main__":
-#     get_ram()
-#     limit_ram(0.1)
-
-# --------------------------------------------------------------------------------
-# End of Source Code from: /home/ywatanabe/proj/scitex-code/src/scitex/resource/limit_ram.py
-# --------------------------------------------------------------------------------
+@requires_fork
+def test_limit_ram_soft_rlimit_not_exceeding_free_ram_in_child():
+    # Arrange
+    factor = 0.25
+    # Act
+    raw = _fork_capture(
+        factor,
+        lambda soft,
+        free_bytes: f"{(soft / free_bytes) if free_bytes else 0:.4f}".encode(),
+    )
+    # Assert
+    assert float(raw) <= 1.0

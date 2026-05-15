@@ -47,10 +47,23 @@ _ENV_VAR = "SCITEX_RESOURCE_MACHINE"
 
 
 def _config_paths() -> list[Path]:
-    """Search order for ``config.yaml`` — project scope first, user fallback."""
+    """Search order for ``config.yaml`` — project scope first, user fallback.
+
+    The project search walks from cwd up to (but stops AT) ``$HOME`` so
+    the user's ``~/.scitex/<pkg>/config.yaml`` is not mistaken for a
+    project hit when cwd happens to live under home (which it almost
+    always does on a workstation).
+    """
     paths: list[Path] = []
     cwd_root = Path.cwd()
+    home = Path.home().resolve()
     for parent in (cwd_root, *cwd_root.parents):
+        try:
+            resolved = parent.resolve()
+        except OSError:
+            resolved = parent
+        if resolved == home:
+            break
         candidate = parent / ".scitex" / _PKG_SHORT / "config.yaml"
         if candidate.is_file():
             paths.append(candidate)

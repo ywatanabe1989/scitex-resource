@@ -1,0 +1,1 @@
+"""scitex-resource MCP subpackage."""

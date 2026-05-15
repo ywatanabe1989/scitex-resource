@@ -1,54 +1,61 @@
-#!/usr/bin/env python3
-"""Tests for scitex_resource._utils._get_env_info.
+"""Tests for ``scitex_resource._utils._get_env_info``.
 
-The function shells out to gather system info — tests verify that it
-returns a populated SystemEnv namedtuple with the expected fields, and
-that the helper module exports the SystemEnv type.
+Shells out to gather real system info — no mocks.
 """
+
+from __future__ import annotations
 
 import pytest
 
-from scitex_resource._utils._get_env_info import (
-    SystemEnv,
-    get_env_info,
+from scitex_resource._utils._get_env_info import SystemEnv, get_env_info
+
+
+def test_systemenv_is_tuple_subclass():
+    # Arrange
+    # Act
+    is_tuple = issubclass(SystemEnv, tuple)
+    # Assert
+    assert is_tuple
+
+
+def test_systemenv_has_namedtuple_fields_attr():
+    # Arrange
+    # Act
+    has_fields = hasattr(SystemEnv, "_fields")
+    # Assert
+    assert has_fields
+
+
+@pytest.mark.parametrize(
+    "field",
+    [
+        "torch_version",
+        "is_debug_build",
+        "cuda_compiled_version",
+        "gcc_version",
+        "os",
+        "python_version",
+    ],
 )
+def test_systemenv_has_expected_field(field):
+    # Arrange
+    # Act
+    fields = SystemEnv._fields
+    # Assert
+    assert field in fields
 
 
-class TestSystemEnvNamedTuple:
-    def test_is_namedtuple(self):
-        # NamedTuples are tuple subclasses with named fields.
-        assert issubclass(SystemEnv, tuple)
-        assert hasattr(SystemEnv, "_fields")
-
-    def test_has_expected_fields(self):
-        # Spot-check the canonical SystemEnv shape.
-        for f in (
-            "torch_version",
-            "is_debug_build",
-            "cuda_compiled_version",
-            "gcc_version",
-            "os",
-            "python_version",
-        ):
-            assert f in SystemEnv._fields, f"missing field: {f}"
+def test_get_env_info_returns_systemenv_instance():
+    # Arrange
+    # Act
+    info = get_env_info()
+    # Assert
+    assert isinstance(info, SystemEnv)
 
 
-class TestGetEnvInfo:
-    def test_returns_systemenv_instance(self):
-        info = get_env_info()
-        assert isinstance(info, SystemEnv)
-
-    def test_python_version_populated(self):
-        info = get_env_info()
-        # Python version should at least contain "3." since this runs on
-        # any modern Python.
-        assert info.python_version
-        assert "3." in str(info.python_version)
-
-
-if __name__ == "__main__":
-    import os
-
-    pytest.main([os.path.abspath(__file__), "-v"])
-
-# EOF
+def test_get_env_info_python_version_populated():
+    # Arrange
+    # Act
+    info = get_env_info()
+    # Assert
+    assert "3." in str(info.python_version)

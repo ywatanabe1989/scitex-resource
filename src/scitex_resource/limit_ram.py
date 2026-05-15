@@ -9,7 +9,8 @@ from ._compat import fmt_size
 
 def limit_ram(ram_factor):
     soft, hard = resource.getrlimit(resource.RLIMIT_AS)
-    max_val = min(ram_factor * get_ram() * 1024, get_ram() * 1024)
+    free_bytes = get_ram() * 1_024
+    max_val = int(min(ram_factor * free_bytes, free_bytes))
     resource.setrlimit(resource.RLIMIT_AS, (max_val, hard))
     print(f"\nFree RAM was limited to {fmt_size(max_val)}")
 

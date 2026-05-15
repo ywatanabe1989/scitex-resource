@@ -1,86 +1,55 @@
 ---
 name: scitex-resource
 description: |
-  [WHAT] System resource introspection + monitoring.
-  [WHEN] Use when working with scitex-resource APIs or when the user mentions scitex.resource..
-  [HOW] `import scitex_resource` then call `get_specs()`.
-tags: [scitex-resource]
+  [WHAT] System resource introspection — canonical machine name, rich
+  human-formatted specs (CPU/GPU/disk/network), flat machine-readable
+  metrics for heartbeats, single-row processor usage snapshots, a
+  long-running CSV usage logger, and per-process RAM limit (RLIMIT_AS).
+  [WHEN] Building monitors / dashboards / heartbeats; deciding what host
+  a multi-cluster ecosystem is running on; capping a python process's
+  memory footprint; logging CPU/RAM/GPU/VRAM time series.
+  [HOW] `from scitex_resource import get_specs, get_metrics, get_machine_name`,
+  or `scitex-resource <noun> <verb> [--json|--yaml]`.
 primary_interface: python
 interfaces:
   python: 3
-  cli: 1
-  mcp: 0
+  cli: 2
+  mcp: 2
   skills: 2
   hook: 0
   http: 0
-canonical-location: scitex-resource/src/scitex_resource/_skills/scitex-resource/SKILL.md
+tags: [scitex-resource]
 ---
-
-
-> **Interfaces:** Python ⭐⭐⭐ (primary) · CLI ⭐ · MCP — · Skills ⭐⭐ · Hook — · HTTP —
 
 # scitex-resource
 
-Single-call system introspection + lightweight monitoring.
+The ecosystem's single source of truth for "what machine am I on?" and
+"how much CPU/RAM/GPU does it have right now?". All other scitex-*
+packages (scitex-orochi, scitex-hpc, scitex-agent-container, ...) consume
+`get_machine_name()` so they agree on one canonical identity regardless
+of FQDN drift or login-vs-compute-node split.
 
-## One-shot snapshot
+## Three observation tiers
 
-```python
-import scitex_resource as res
-
-specs = res.get_specs()
-# {'cpu': {...}, 'memory': {...}, 'disk': {...}, 'network': {...},
-#  'gpu': {...}, 'os': {...}, 'python': {...}}
-```
-
-Use as a header in analysis scripts so you can later answer "what
-machine produced this result?".
-
-## Live metrics
-
-```python
-m = res.get_metrics()              # CPU%, mem%, disk%
-cpu_per_core = res.get_processor_usages()
-```
-
-## Monitoring loop
-
-```python
-res.log_processor_usages(interval_s=10, duration_s=3600)
-# Appends JSONL entries to <scitex_dir>/resource/runtime/usages-*.jsonl
-```
-
-Reads back as standard JSONL (`pandas.read_json(path, lines=True)`).
-
-## Per-host configuration
-
-```python
-name = res.get_machine_name()                # stable across reboots
-cfg = res.get_machine_config()               # honors $SCITEX_DIR / project scope
-```
-
-`get_machine_config` resolves through `scitex_config._ecosystem.local_state`,
-so a project can override the global host config via
-`<repo>/.scitex/resource/config.yaml`.
-
-## When to use
-
-- ✅ Reproducibility — record `get_specs()` at the top of an experiment
-- ✅ HPC dashboards — feed `get_metrics()` into a status panel
-- ✅ Per-host CLI behavior — branch on `get_machine_name()`
-- ❌ Sub-second profiling — `psutil` is rate-limited; use `perf` /
-  `py-spy` instead
+| Tier | Function | Shape | Use when |
+|---|---|---|---|
+| Rich human specs | `get_specs(...)` | nested dict (or YAML) | one-off display, experiment header |
+| Flat metrics | `get_metrics(gpu=True)` | flat dict | heartbeats, dashboards, wire payloads |
+| Live usages | `get_processor_usages()` | 1-row DataFrame | sampling loops, CSV time series |
 
 ## Sub-skills
 
-- [01_installation.md](01_installation.md) — pip install + smoke verify
-- [02_quick-start.md](02_quick-start.md) — snapshot + live metrics + monitor
-- [03_python-api.md](03_python-api.md) — public callables reference
+### Core (01-05)
+- [01_installation.md](01_installation.md) -- pip install + smoke verify
+- [02_quick-start.md](02_quick-start.md) -- snapshot + live metrics
+- [03_python-api.md](03_python-api.md) -- public callables reference
 
-## See also
+### Interfaces (04-09)
+- [04_cli-reference.md](04_cli-reference.md) -- CLI cheat sheet
+- [05_mcp-tools.md](05_mcp-tools.md) -- MCP tool surface
 
-- `scitex-events` — emit `get_metrics()` as periodic events for cloud
-  forwarding
-- `scitex-config` — per-host config layered over `$SCITEX_DIR`
-- General skill `01_arch_06_local-state-directories.md` — runtime path
-  policy
+### Topics (10-19)
+- [10_machine-identity.md](10_machine-identity.md) -- resolution cascade
+- [11_specs-vs-metrics.md](11_specs-vs-metrics.md) -- which tier to use
+- [12_processor-usages-log.md](12_processor-usages-log.md) -- long-running CSV logger
+- [13_ram-limit.md](13_ram-limit.md) -- RLIMIT_AS + linux child-proc gotcha
