@@ -1,0 +1,15 @@
+# scitex-resource project-local CLI vocabulary extensions.
+#
+# This file is additive — entries here extend the bundled scitex-dev catalog
+# (`general/03_interface_02_cli/06_noun-verb-catalog.md`) with tokens that are
+# package-specific or that map to well-established CLI idioms not covered by
+# the canonical list. See `general/03_interface_02_cli/07_audit-cli.md` §1d
+# for the lookup chain (project dict → user dict → catalog → Moby POS).
+
+transitive_verbs:
+  # `unset` — clear a previously-set config key. Standard config-CLI idiom
+  # (`git config --unset`, `kubectl unset`, `npm config delete` alias `unset`).
+  # Paired with `set` in `scitex-resource hosts config {set,unset}`; the
+  # catalog's `delete`/`remove` read as destructive on the *config file* rather
+  # than on a single key, so we keep the set/unset symmetry here.
+  - unset
