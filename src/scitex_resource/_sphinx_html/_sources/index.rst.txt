@@ -1,5 +1,5 @@
 scitex-resource
-==============
+===============
 
 System resource info, processor usage logging, and RAM limit utilities
 extracted from the SciTeX ecosystem as a standalone package.
