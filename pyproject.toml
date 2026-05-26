@@ -68,7 +68,7 @@ Documentation = "https://scitex-resource.readthedocs.io"
 where = ["src"]
 
 [tool.setuptools.package-data]
-scitex_resource = ["_skills/**/*.md", "_get_specs/*.yaml"]
+scitex_resource = ["_skills/**/*.md", "_get_specs/*.yaml", "_sphinx_html/**"]
 
 [project.entry-points."scitex_dev.skills"]
 scitex-resource = "scitex_resource"
