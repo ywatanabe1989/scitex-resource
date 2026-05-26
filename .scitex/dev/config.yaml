@@ -9,6 +9,8 @@ audit:
   root-whitelist:
     files:
       - codecov.yml  # Codecov dashboard config (see _skills/.../02_package_11_ci-and-codecov.md)
+    dirs:
+      - scitex-resource  # nested worktree / scratch checkout (PS-103)
 # audit:
 #   skip:
 #     - PS-108
