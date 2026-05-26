@@ -24,7 +24,6 @@ CROSS_PACKAGE_IMPORTS = [
     "scitex_dev",
     "scitex_io._load",
     "scitex_io._save",
-    "scitex_resource",
     "scitex_sh",
 ]
 # ===== END AUTO-GENERATED =====
