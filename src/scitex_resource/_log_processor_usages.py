@@ -25,6 +25,7 @@ from typing import Union
 import pandas as pd
 
 from ._compat import printc
+from ._runtime import default_log_path
 from ._specs import get_processor_usages
 
 
@@ -81,7 +82,7 @@ def sh(cmd, **kwargs):
 
 
 def log_processor_usages(
-    path: str = "/tmp/scitex/processor_usages.csv",
+    path: str | None = None,
     limit_min: float = 30,
     interval_s: float = 1,
     init: bool = True,
@@ -110,6 +111,8 @@ def log_processor_usages(
     Union[None, Process]
         Process object if background=True, None otherwise
     """
+    if path is None:
+        path = default_log_path()
     if background:
         process = Process(
             target=_log_processor_usages,
@@ -128,7 +131,7 @@ def log_processor_usages(
 
 
 def _log_processor_usages(
-    path: str = "/tmp/scitex/processor_usages.csv",
+    path: str | None = None,
     limit_min: float = 30,
     interval_s: float = 1,
     init: bool = True,
@@ -153,6 +156,8 @@ def _log_processor_usages(
     -------
     >>> log_processor_usages(path="usage_log.csv", limit_min=5)
     """
+    if path is None:
+        path = default_log_path()
     assert path.endswith(".csv"), "Path must end with .csv"
 
     # Log file initialization

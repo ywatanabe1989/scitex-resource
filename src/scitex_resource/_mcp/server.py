@@ -21,6 +21,7 @@ except ImportError as e:  # pragma: no cover — fastmcp is optional
     ) from e
 
 from .._machine import get_machine_config, get_machine_name
+from .._runtime import default_log_path
 from .._specs import get_metrics, get_processor_usages, get_specs
 
 mcp = FastMCP("scitex-resource")
@@ -111,12 +112,14 @@ def _tool_get_processor_usages() -> list[dict]:
 
 @mcp.tool(name="log_processor_usages")
 def _tool_log_processor_usages(
-    path: str = "/tmp/scitex/processor_usages.csv",
+    path: str | None = None,
     interval_s: float = 1.0,
     max_rows: int = 60,
     init: bool = True,
 ) -> dict[str, Any]:
     """Append CPU/RAM/GPU/VRAM rows to a CSV. Blocks until done."""
+    if path is None:
+        path = default_log_path()
     from .._log_processor_usages import log_processor_usages
 
     limit_min = (max_rows * interval_s) / 60.0
