@@ -30,7 +30,6 @@ header=False)`, so no full-file rewrite even for hour-long runs.
 
 ```python
 proc = log_processor_usages(
-    path="/tmp/run-42-usages.csv",
     limit_min=60,
     interval_s=5,
     background=True,    # returns multiprocessing.Process
@@ -49,17 +48,22 @@ at interval I" is the natural specification for a heartbeat:
 
 ```bash
 $ scitex-resource processor-usages log \
-    --interval 5 --max-rows 12 --path /tmp/usage.csv
-# wrote 12 rows to /tmp/usage.csv  (= 1 minute at 5 s spacing)
+    --interval 5 --max-rows 12
+# wrote 12 rows to ~/.scitex/resource/runtime/processor_usages.csv
 ```
 
 `limit_min` is computed under the hood as `(max_rows * interval) / 60`.
+
+The default output path is ``~/.scitex/resource/runtime/processor_usages.csv``.
+Override with ``--path``.
 
 ## Reading back
 
 ```python
 import pandas as pd
-df = pd.read_csv("/tmp/usage.csv", parse_dates=["Timestamp"])
+from pathlib import Path
+path = Path.home() / ".scitex" / "resource" / "runtime" / "processor_usages.csv"
+df = pd.read_csv(path, parse_dates=["Timestamp"])
 df.set_index("Timestamp")["CPU [%]"].plot()
 ```
 

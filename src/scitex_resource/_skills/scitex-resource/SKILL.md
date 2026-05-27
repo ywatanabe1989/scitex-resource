@@ -8,7 +8,7 @@ description: |
   [WHEN] Building monitors / dashboards / heartbeats; deciding what host
   a multi-cluster ecosystem is running on; capping a python process's
   memory footprint; logging CPU/RAM/GPU/VRAM time series.
-  [HOW] `from scitex_resource import get_specs, get_metrics, get_machine_name`,
+  [HOW] `from scitex_resource import get_specs, get_metrics, get_host_name`,
   or `scitex-resource <noun> <verb> [--json|--yaml]`.
 primary_interface: python
 interfaces:

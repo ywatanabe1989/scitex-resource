@@ -6,7 +6,7 @@
   </a>
 </p>
 
-<p align="center"><b>System resource info, processor usage logging, RAM limiting + machine-identity config.</b></p>
+<p align="center"><b>System resource info, processor usage logging, RAM limiting + host-identity config.</b></p>
 
 <p align="center">
   <a href="https://scitex-resource.readthedocs.io/">Full Documentation</a> · <code>uv pip install scitex-resource[all]</code>
@@ -35,11 +35,15 @@ pip install scitex-resource
 
 ```
 src/scitex_resource/
-├── __init__.py                # public API surface
-├── _machine.py                # canonical machine name + config resolution
-├── _log_processor_usages.py   # CPU / RAM CSV logger (continuous)
+├── __init__.py                # public API surface (lazy via __getattr__)
+├── _host.py                   # canonical host name + host config resolution
+├── _machine.py                # deprecated aliases → _host (back-compat)
+├── _runtime.py                # SCITEX_DIR-aware runtime path resolver
+├── _log_processor_usages.py   # CPU / RAM / GPU / VRAM CSV logger
 ├── limit_ram.py               # cap process RSS via resource.RLIMIT_AS
 ├── _compat.py                 # vendored str / gen helpers (decoupling)
+├── _cli/                      # Click-based CLI (hosts, specs, metrics, …)
+├── _mcp/                      # FastMCP server (Python-API mirror)
 ├── _utils/                    # psutil wrappers (metrics / specs)
 └── _specs/                    # rich human-readable snapshot helpers
 ```
@@ -57,19 +61,44 @@ import scitex_resource as r
 # Hub-friendly metrics (cross-platform via psutil)
 metrics = r.get_metrics()
 
-# Canonical machine identity
-name = r.get_machine_name()
-cfg = r.get_machine_config()        # {"canonical_name", "aliases", "role", "hpc": {...}}
+# Canonical host identity
+name = r.get_host_name()
+cfg = r.get_host_config()        # {"canonical_name", "aliases", "role", "hpc": {...}}
 
 # Rich snapshot
 specs = r.get_specs()
 
-# CPU/RAM samples + continuous CSV logging
+# CPU/RAM/GPU/VRAM samples + continuous CSV logging
 usage = r.get_processor_usages()
-r.log_processor_usages("/tmp/usage.csv", limit_min=30, interval_s=1)
+r.log_processor_usages(limit_min=30, interval_s=1)
+# default: ~/.scitex/resource/runtime/processor_usages.csv
 
 # Cap process RAM
 r.limit_ram(0.5)
+```
+
+</details>
+
+<details>
+<summary><strong>CLI</strong></summary>
+
+<br>
+
+```bash
+# Host identity
+$ scitex-resource hosts show
+$ scitex-resource hosts config show --json
+
+# System specs and live metrics
+$ scitex-resource specs
+$ scitex-resource metrics show --json
+
+# Processor usage snapshot + continuous CSV log
+$ scitex-resource processor-usages show --json
+$ scitex-resource processor-usages log --interval 5 --max-rows 12
+
+# Cap process RAM
+$ scitex-resource ram-limit 0.8
 ```
 
 </details>
@@ -78,16 +107,16 @@ r.limit_ram(0.5)
 
 ```mermaid
 flowchart LR
-    env["$SCITEX_RESOURCE_MACHINE"] --> resolve["resolve canonical name"]
+    env["$SCITEX_RESOURCE_HOST"] --> resolve["resolve canonical name"]
     proj["./.scitex/resource/config.yaml"] --> resolve
     home["~/.scitex/resource/config.yaml"] --> resolve
     host["socket.gethostname()"] --> resolve
-    resolve --> name["get_machine_name() → 'mba'"]
-    resolve --> cfg["get_machine_config()"]
+    resolve --> name["get_host_name() → 'mba'"]
+    resolve --> cfg["get_host_config()"]
     psutil["psutil"] --> metrics["get_metrics()"]
     metrics --> snapshot[("cpu / mem / disk / gpu / load")]
-    psutil --> log["log_processor_usages('/tmp/usage.csv', limit_min=30)"]
-    log --> csv[("usage.csv (continuous)")]
+    psutil --> log["log_processor_usages(limit_min=30)"]
+    log --> csv[("~/.scitex/resource/runtime/processor_usages.csv")]
 ```
 
 ## Quick Start
@@ -95,21 +124,21 @@ flowchart LR
 ```python
 import scitex_resource as r
 
-print(r.get_machine_name())          # canonical machine identity
-metrics = r.get_metrics()            # cpu / mem / disk / gpu / load
-specs = r.get_specs()                # rich human-readable snapshot
+print(r.get_host_name())           # canonical host identity
+metrics = r.get_metrics()          # cpu / mem / disk / gpu / load
+specs = r.get_specs()              # rich human-readable snapshot
 ```
 
-## Machine identity config — `~/.scitex/resource/config.yaml`
+## Host identity config — `~/.scitex/resource/config.yaml`
 
 ```yaml
-machine:
-  canonical_name: mba                  # what every scitex-* package uses to refer to this host
-  aliases:                              # optional; cross-package discovery / drift detection
+host:
+  canonical_name: mba                 # what every scitex-* package uses to refer to this host
+  aliases:                            # optional; cross-package discovery / drift detection
     - Yusukes-MacBook-Air
     - Yusukes-MacBook-Air.local
-  role: head                            # generic role tag (head, worker, hpc-login, ...)
-  hpc:                                  # optional; HPC-only
+  role: head                          # generic role tag (head, worker, hpc-login, ...)
+  hpc:                                # optional; HPC-only
     cluster: spartan
     login_only: true
     partitions: [physical, sapphire]
@@ -117,18 +146,21 @@ machine:
 
 Resolution cascade (highest precedence first):
 
-1. `$SCITEX_RESOURCE_MACHINE`
-2. `<project>/.scitex/resource/config.yaml` `machine.canonical_name`
-3. `~/.scitex/resource/config.yaml` `machine.canonical_name`
+1. `$SCITEX_RESOURCE_HOST`
+2. `<project>/.scitex/resource/config.yaml` `host.canonical_name`
+3. `~/.scitex/resource/config.yaml` `host.canonical_name`
 4. `socket.gethostname().split(".", 1)[0]`
+
+(Deprecated `$SCITEX_RESOURCE_MACHINE` and `machine:` config block are
+still honoured as fallbacks with a one-time ``DeprecationWarning``.)
 
 ## Status
 
-Standalone fork of `scitex.resource`. Deps: pandas, psutil, PyYAML, matplotlib.
+Standalone fork of `scitex.resource`. Deps: pandas, psutil, PyYAML, click.
 
 Decoupling notes:
 - `scitex.str.readable_bytes` / `scitex.gen.fmt_size` / `scitex.str.printc` →
-  vendored as 3 small helpers in `_compat.py`.
+  vendored as small helpers in `_compat.py`.
 - `scitex.io._load.load` / `scitex.io._save.save` → use `pandas.read_csv` /
   `to_csv` directly for the CSV log files.
 - `scitex.sh.sh` → prefer `scitex_sh` if installed, fall back to plain
