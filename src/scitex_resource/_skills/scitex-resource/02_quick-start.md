@@ -30,24 +30,24 @@ cores = res.get_processor_usages()     # per-core CPU%
 ## Long-running monitor
 
 ```python
-res.log_processor_usages(interval_s=10, duration_s=3600)
-# Appends JSONL to <scitex_dir>/resource/runtime/usages-*.jsonl
+res.log_processor_usages(limit_min=30, interval_s=1)
+# Appends CSV rows to ~/.scitex/resource/runtime/processor_usages.csv
 ```
 
 Read back with standard tools:
 
 ```python
 import pandas as pd
-df = pd.read_json("<path>.jsonl", lines=True)
+df = pd.read_csv("~/.scitex/resource/runtime/processor_usages.csv")
 ```
 
 ## Per-host identity
 
 ```python
-name = res.get_machine_name()          # stable across reboots
-cfg  = res.get_machine_config()        # honors $SCITEX_DIR / project scope
+name = res.get_host_name()           # stable across reboots
+cfg  = res.get_host_config()         # honors $SCITEX_DIR / project scope
 ```
 
-`get_machine_config()` resolves through `scitex_config._ecosystem.local_state`,
-so a project can override the global host config via
+`get_host_config()` resolves through the config cascade (env → project →
+user → hostname), so a project can override the global host config via
 `<repo>/.scitex/resource/config.yaml`.

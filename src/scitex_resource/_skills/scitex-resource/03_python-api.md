@@ -17,9 +17,11 @@ Top-level public surface re-exported from `scitex_resource`.
 | `get_specs()`                 | One-shot dict — cpu / memory / disk / network / gpu / os / python |
 | `get_metrics()`               | Live `cpu_percent`, `mem_percent`, `disk_percent` snapshot |
 | `get_processor_usages()`      | Per-core CPU% list                                        |
-| `log_processor_usages(...)`   | Append per-core CPU% to JSONL on an interval              |
-| `get_machine_name()`          | Stable host identifier (survives reboots)                 |
-| `get_machine_config()`        | Per-host config dict (layered via `scitex_config`)        |
+| `log_processor_usages(...)`   | Append CPU/RAM/GPU/VRAM rows to CSV on an interval        |
+| `get_host_name()`             | Stable host identifier (survives reboots)                 |
+| `get_host_config()`           | Per-host config dict (env → project → user → hostname)   |
+| `get_machine_name()`          | Deprecated alias for `get_host_name()`                    |
+| `get_machine_config()`        | Deprecated alias for `get_host_config()`                  |
 | `load_config(path)`           | Low-level YAML loader for arbitrary config files          |
 | `main()`                      | CLI entry point used by `python -m scitex_resource._log_processor_usages` |
 
@@ -38,21 +40,22 @@ specs["python"]["version"]    # e.g. '3.11.6'
 
 ```python
 res.log_processor_usages(
-    interval_s: float = 10,    # sample period
-    duration_s: float = 3600,  # stop after this many seconds
-    out_path: str | None = None,  # default: <scitex_dir>/resource/runtime/
+    path: str | None = None,   # default: ~/.scitex/resource/runtime/processor_usages.csv
+    limit_min: float = 30,     # stop after this many minutes
+    interval_s: float = 1,     # sample period in seconds
 )
 ```
 
-Output is JSONL — one line per sample with timestamp + per-core values.
+Output is CSV — one row per sample with Timestamp, CPU%, RAM, GPU%, VRAM.
 
 ## Config layering
 
-`get_machine_config()` honors:
+`get_host_config()` honors:
 
-1. project-local `<repo>/.scitex/resource/config.yaml`
-2. user-level `$SCITEX_DIR/resource/config.yaml`
-3. package defaults
+1. `$SCITEX_RESOURCE_HOST` env var (highest)
+2. project-local `<repo>/.scitex/resource/config.yaml`
+3. user-level `$SCITEX_DIR/resource/config.yaml`
+4. short hostname (fallback)
 
 Use this to attach project-specific tags / labels to a host without
 touching the global config.

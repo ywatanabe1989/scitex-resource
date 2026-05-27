@@ -7,11 +7,11 @@ description: |
 tags: [scitex-resource-machine-identity]
 ---
 
-# Canonical machine identity
+# Canonical host identity
 
-scitex-resource owns the question "what machine am I running on?".
+scitex-resource owns the question "what host am I running on?".
 Other scitex-* packages (scitex-orochi, scitex-hpc, scitex-agent-container)
-consume `get_machine_name()` so every package agrees on one canonical
+consume `get_host_name()` so every package agrees on one canonical
 name regardless of how the OS reports it (FQDN drift,
 `Yusukes-MacBook-Air` vs `mba`, login-node vs compute-node, etc.).
 
@@ -19,20 +19,23 @@ name regardless of how the OS reports it (FQDN drift,
 
 Highest precedence first:
 
-1. `$SCITEX_RESOURCE_MACHINE` env var
-2. `<project>/.scitex/resource/config.yaml` -- `machine.canonical_name`
-3. `~/.scitex/resource/config.yaml` -- `machine.canonical_name`
+1. `$SCITEX_RESOURCE_HOST` env var
+   (legacy `$SCITEX_RESOURCE_MACHINE` is still honoured as a fallback)
+2. `<project>/.scitex/resource/config.yaml` -- `host.canonical_name`
+   (falls back to legacy `machine.canonical_name`)
+3. `~/.scitex/resource/config.yaml` -- `host.canonical_name`
+   (falls back to legacy `machine.canonical_name`)
 4. Short hostname (`socket.gethostname().split(".", 1)[0]`)
 
-The same chain applies to `get_machine_config()` which returns the
-full `machine:` block including `aliases`, `role`, `hpc.*`.
+The same chain applies to `get_host_config()` which returns the
+full `host:` block including `aliases`, `role`, `hpc.*`.
 
 ## Config schema
 
 `~/.scitex/resource/config.yaml` -- example for a SLURM login node:
 
 ```yaml
-machine:
+host:
   canonical_name: spartan
   aliases:
     - spartan-login1.hpc.example.edu
@@ -44,13 +47,20 @@ machine:
     partitions: [physical, sapphire]
 ```
 
+(Deprecated ``machine:`` block is still accepted but triggers a one-time
+``DeprecationWarning``.)
+
 ## CLI
 
 ```bash
-$ scitex-resource machine show              # prints canonical name
-$ scitex-resource machine show --json
-$ scitex-resource machine config --yaml     # full machine: block
+$ scitex-resource hosts show              # prints canonical name
+$ scitex-resource hosts show --json
+$ scitex-resource hosts config show --yaml   # full host: block
+$ scitex-resource hosts config set host.canonical_name spartan --yes
 ```
+
+(Deprecated ``scitex-resource machine ...`` alias still works but emits
+a ``DeprecationWarning``.)
 
 ## Why this matters
 
