@@ -47,7 +47,7 @@ what the process can actually use. Set `gpu=False` to skip the ~200 ms
 Single-sample DataFrame with columns
 `Timestamp, CPU [%], RAM [GiB], GPU [%], VRAM [GiB]`. Designed to be
 `pd.concat`'d into a longer time series -- see
-[06_processor-usages-log.md](06_processor-usages-log.md).
+[12_processor-usages-log.md](12_processor-usages-log.md).
 
 ## CLI quick mapping
 

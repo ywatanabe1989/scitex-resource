@@ -11,12 +11,17 @@ tags: [scitex-resource-cli-reference]
 scitex-resource [-h|-V|--help-recursive|--json] <noun> <verb> [opts]
 ```
 
-## Machine
+## Hosts (identity)
 
 | Command | Output |
 |---|---|
-| `machine show [--json]` | canonical machine name |
-| `machine config [--json|--yaml]` | full `machine:` block from config |
+| `hosts show [--json]` | canonical host name |
+| `hosts config show [--json\|--yaml]` | resolved `host:` block |
+| `hosts config set KEY VALUE [--user\|--project]` | set a dot-path key |
+| `hosts config unset KEY [--user\|--project]` | remove a dot-path key |
+| `hosts config init [--user\|--project]` | scaffold a starter config.yaml |
+| `hosts config edit [--user\|--project]` | open in $EDITOR |
+| `machine ...` | deprecated alias for `hosts ...` |
 
 ## Specs / metrics / processor-usages
 
@@ -51,10 +56,10 @@ scitex-resource [-h|-V|--help-recursive|--json] <noun> <verb> [opts]
 ## Examples
 
 ```bash
-$ scitex-resource machine show
-ywata-note-win
+$ scitex-resource hosts show
+spartan
 $ scitex-resource metrics show --no-gpu --json | jq .mem_used_percent
 54.3
-$ scitex-resource processor-usages log --interval 2 --max-rows 30 --path /tmp/u.csv
-wrote 30 rows to /tmp/u.csv
+$ scitex-resource processor-usages log --interval 2 --max-rows 30
+wrote 30 rows to /home/user/.scitex/resource/runtime/processor_usages.csv
 ```

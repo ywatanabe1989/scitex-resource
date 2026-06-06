@@ -11,6 +11,7 @@ import json as _json
 import click
 
 from .._log_processor_usages import log_processor_usages
+from .._runtime import default_log_path
 from .._specs import get_processor_usages
 
 
@@ -73,7 +74,7 @@ def processor_usages_show(
     "--path",
     "path",
     type=click.Path(),
-    default="/tmp/scitex/processor_usages.csv",
+    default=default_log_path(),
     help="CSV path to append rows to.",
 )
 @click.option(

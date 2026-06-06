@@ -15,20 +15,14 @@ under a namespace via `safe_mount(..., namespace="resource")`.
 
 | Tool | Maps to Python API | Notes |
 |---|---|---|
-| `machine_show` | `get_machine_name()` | env > config > short hostname |
-| `machine_config` | `get_machine_config()` | per-host `machine:` block |
-| `specs_show` | `get_specs(system,cpu,gpu,disk,network,verbose=False,yaml=False)` | nested dict |
-| `metrics_show` | `get_metrics(gpu=True)` | flat dict for heartbeats |
-| `processor_usages_show` | `get_processor_usages()` | list-of-records (1 row) |
-| `processor_usages_log` | `log_processor_usages(...)` | blocks; bg=False |
-| `ram_limit_set` | `limit_ram(factor)` | 0 < factor <= 1 |
-| `ram_limit_get` | `get_ram()` | KiB free |
-| `get_machine_name` | alias of `machine_show` | API-name parity (audit §7) |
-| `get_machine_config` | alias of `machine_config` | API-name parity |
-| `get_specs` | alias of `specs_show` | API-name parity |
-| `get_metrics` | alias of `metrics_show` | API-name parity |
-| `get_processor_usages` | alias of `processor_usages_show` | API-name parity |
-| `log_processor_usages` | alias of `processor_usages_log` | API-name parity |
+| `get_machine_name` | `get_machine_name()` | env > config > short hostname |
+| `get_machine_config` | `get_machine_config()` | per-host `machine:` block |
+| `get_specs` | `get_specs(system,cpu,gpu,disk,network)` | nested dict |
+| `get_metrics` | `get_metrics(gpu=True)` | flat dict for heartbeats |
+| `get_processor_usages` | `get_processor_usages()` | list-of-records (1 row) |
+| `log_processor_usages` | `log_processor_usages(...)` | blocks; bg=False |
+| `limit_ram` | `limit_ram(factor)` | 0 < factor <= 1 |
+| `get_ram` | `get_ram()` | KiB free |
 | `skills_list`, `skills_get` | -- | bundled markdown access |
 
 ## Listing what is actually registered
