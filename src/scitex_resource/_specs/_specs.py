@@ -13,8 +13,11 @@ from datetime import datetime as _datetime
 from pprint import pprint
 
 import psutil as _psutil
-import yaml as _yaml
 
+# NOTE: ``yaml`` is imported lazily inside the ``yaml=True`` branch of
+# ``get_specs`` (its only use). This module is on the ``_mcp.server`` import
+# path; keeping non-essential imports out of module scope holds the umbrella
+# MCP aggregator's per-peer cold-start cheap.
 # NOTE: matplotlib.pyplot is intentionally NOT imported at module level.
 # It is only used by the ``__main__`` demo below, and importing pyplot
 # eagerly triggers the matplotlib font-cache build (~tens of seconds on a
@@ -94,6 +97,8 @@ def get_specs(
         collected_info["Network Info"] = _network_info()
 
     if yaml:
+        import yaml as _yaml
+
         collected_info = _yaml.dump(collected_info, sort_keys=False)
 
     if verbose:
