@@ -21,9 +21,13 @@ import sys
 from datetime import datetime
 from typing import Optional, Tuple
 
-import matplotlib.pyplot as plt
 import pandas as pd
 import psutil
+
+# NOTE: matplotlib.pyplot is imported lazily inside ``__main__`` (not at
+# module level) — it is only used by the demo below, and eager pyplot
+# import triggers the font-cache build that darkened the umbrella MCP
+# aggregator's cold-start (this module is on the _mcp.server import path).
 
 
 def get_processor_usages() -> pd.DataFrame:
@@ -163,6 +167,7 @@ def _get_gpu_usage(n_round: int = 1) -> Tuple[float, float]:
 
 
 if __name__ == "__main__":
+    import matplotlib.pyplot as plt
     import scitex
 
     CONFIG, sys.stdout, sys.stderr, plt, CC = scitex.session.start(
