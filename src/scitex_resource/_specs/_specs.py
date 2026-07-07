@@ -12,9 +12,15 @@ import sys
 from datetime import datetime as _datetime
 from pprint import pprint
 
-import matplotlib.pyplot as plt
 import psutil as _psutil
 import yaml as _yaml
+
+# NOTE: matplotlib.pyplot is intentionally NOT imported at module level.
+# It is only used by the ``__main__`` demo below, and importing pyplot
+# eagerly triggers the matplotlib font-cache build (~tens of seconds on a
+# cold cache). This module is on the ``scitex_resource._mcp.server`` import
+# path (get_specs is an MCP tool), so a top-level pyplot import darkened
+# the umbrella MCP aggregator's cold-start. Deferred into ``__main__``.
 
 from .._compat import readable_bytes
 from .._utils._get_env_info import get_env_info
@@ -254,6 +260,7 @@ def _supple_nvidia_info():
 
 
 if __name__ == "__main__":
+    import matplotlib.pyplot as plt
     import scitex
 
     # Start
