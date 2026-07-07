@@ -15,19 +15,26 @@ Prerequisites:
     * psutil package
 """
 
+from __future__ import annotations
+
 import os
 import subprocess
 import sys
 from datetime import datetime
 from typing import Optional, Tuple
 
-import pandas as pd
 import psutil
 
-# NOTE: matplotlib.pyplot is imported lazily inside ``__main__`` (not at
-# module level) — it is only used by the demo below, and eager pyplot
-# import triggers the font-cache build that darkened the umbrella MCP
-# aggregator's cold-start (this module is on the _mcp.server import path).
+# NOTE: ``pandas`` and ``matplotlib.pyplot`` are imported lazily (inside the
+# function that builds the DataFrame / inside ``__main__``), NOT at module
+# level. This module is on the ``scitex_resource._mcp.server`` import path,
+# and the umbrella MCP aggregator imports every peer's ``_mcp.server``
+# serially under a per-peer timeout during cold-start. Eager ``pandas``
+# (~1 s) and eager ``pyplot`` (font-cache build) both inflated that
+# cold-start; deferring them keeps ``import _mcp.server`` sub-second while
+# the DataFrame-returning tool still pays the pandas cost lazily on first
+# call. ``from __future__ import annotations`` makes the ``-> pd.DataFrame``
+# return annotation a string so it is not evaluated at import.
 
 
 def get_processor_usages() -> pd.DataFrame:
@@ -50,6 +57,8 @@ def get_processor_usages() -> pd.DataFrame:
                  Timestamp  CPU [%]  RAM [GiB]  GPU [%]  VRAM [GiB]
     0  2024-11-04 10:30:15    25.3      8.2     65.0        4.5
     """
+    import pandas as pd
+
     try:
         cpu_perc, ram_gb = _get_cpu_usage()
         gpu_perc, vram_gb = _get_gpu_usage()
