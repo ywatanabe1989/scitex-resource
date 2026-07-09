@@ -5,13 +5,17 @@ name: pr-ci
 # filters, and uv cache apply uniformly. Post-merge validation lives
 # in release-ci.yml.
 #
-# L1 concurrency — cancel superseded PR runs.
-# L3 path filters — skip docs/skills/examples/markdown-only PRs.
-# L4 conditional matrix — full ["3.11", "3.12", "3.13"] on PR (this trigger).
-# L5a uv-managed Python (`uv python install` + `uv venv --python`) so the
-#     matrix leg is not bound to the runner's system Python.
-# L5b .venv/bin on PATH (and explicit `.venv/bin/python` for clarity) so
-#     console scripts resolve without needing `uv run`.
+# PILOT: org-level reusable-workflow caller (scitex-ai/.github, 2026-07-10).
+# `tests` -> pytest-matrix and `audit` -> quality-audit are now thin
+# `uses:` calls into scitex-ai/.github reusable workflows — same job
+# intent, now centrally maintained. `import-smoke` and
+# `dep-hygiene-smoke` are left inlined (see notes on each job below) —
+# their bodies don't cleanly match the org reusable equivalents.
+# Triggers/concurrency preserved verbatim from the prior local file.
+#
+# New required-status-check contexts (see comments per job below) may not
+# match OLD required-status-check contexts on develop/main branch
+# protection — branch protection updated as part of this PR where needed.
 
 on:
   pull_request:
@@ -31,6 +35,11 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  # NOT migrated: this job also smoke-checks the console-script
+  # entrypoints (`scitex-resource --help`, `scitex-resource-mcp --help`)
+  # beyond a plain import check. The org `import-smoke.yml` reusable only
+  # covers the plain import — converting would silently drop that
+  # entrypoint coverage, so left inlined per the migration brief.
   import-smoke:
     name: import-smoke-on-ubuntu-py3-12
     runs-on: ubuntu-latest
@@ -53,6 +62,9 @@ jobs:
         run: .venv/bin/scitex-resource --help
       - name: smoke scitex-resource-mcp --help
         run: .venv/bin/scitex-resource-mcp --help
+
+  # NOT migrated: no reusable-workflow equivalent exists yet for a
+  # bare/no-extras dependency-hygiene install smoke check.
   dep-hygiene-smoke:
     name: dep-hygiene-smoke
     runs-on: ubuntu-latest
@@ -73,64 +85,11 @@ jobs:
         run: .venv/bin/python -c "import scitex_resource; print(scitex_resource.__name__)"
 
   tests:
-    name: pytest-matrix-on-ubuntu-py${{ matrix.python-version }}
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: ${{ github.event_name == 'pull_request' && fromJson('["3.11", "3.12", "3.13"]') || fromJson('["3.12"]') }}
-    steps:
-      - uses: actions/checkout@v4
-      - name: Install uv
-        uses: astral-sh/setup-uv@v3
-        with:
-          enable-cache: true
-          cache-dependency-glob: pyproject.toml
-      - name: Set up Python ${{ matrix.python-version }} (uv-managed)
-        run: uv python install ${{ matrix.python-version }}
-      - name: Create uv venv on this matrix Python
-        run: uv venv --python ${{ matrix.python-version }} .venv
-      - name: Install dependencies
-        # Fallback chain: prefer [all,dev] so optional-dep code paths
-        # get exercised. Falls back to [dev] then plain editable so a
-        # packaging hiccup doesn't strand CI.
-        run: |
-          uv pip install --python .venv/bin/python -e ".[all,dev]" \
-            || uv pip install --python .venv/bin/python -e ".[dev]" \
-            || uv pip install --python .venv/bin/python -e .
-      - name: Run tests
-        # PATH prepend so any test that subprocess-calls a console script
-        # finds it in .venv/bin/.
-        run: |
-          export PATH="$PWD/.venv/bin:$PATH"
-          .venv/bin/pytest tests/ --cov=src/scitex_resource --cov-report=xml --cov-report=term
-      - name: Upload coverage to Codecov
-        if: always() && matrix.python-version == '3.12'
-        uses: codecov/codecov-action@v5
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./coverage.xml
-          fail_ci_if_error: false
+    # New required-status-check context: "tests / pytest-matrix-on-ubuntu-py<X.YY>"
+    uses: scitex-ai/.github/.github/workflows/pytest-matrix.yml@main
+    secrets: inherit
 
   audit:
-    name: audit
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    steps:
-      - uses: actions/checkout@v4
-      - name: Install uv
-        uses: astral-sh/setup-uv@v3
-        with:
-          enable-cache: true
-          cache-dependency-glob: pyproject.toml
-      - name: Set up Python 3.12 (uv-managed)
-        run: uv python install 3.12
-      - name: Install package + audit tooling
-        run: |
-          uv venv --python 3.12 .venv
-          uv pip install --python .venv/bin/python -e ".[dev]"
-          uv pip install --python .venv/bin/python "scitex-dev[cli-audit]"
-      - name: Run scitex-dev ecosystem audit-all
-        run: |
-          export PATH="$PWD/.venv/bin:$PATH"
-          scitex-dev ecosystem audit-all scitex-resource --no-version-check
+    # New required-status-check context: "audit / audit"
+    uses: scitex-ai/.github/.github/workflows/quality-audit.yml@main
+    secrets: inherit
