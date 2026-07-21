@@ -26,6 +26,12 @@ extensions = [
     "sphinx_autodoc_typehints",
 ]
 
+# get_processor_usages() imports pandas lazily (the package promises no
+# eager heavy imports — see tests/develop/test__no_eager_matplotlib.py),
+# so its `-> pd.DataFrame` annotation is unresolvable at autodoc time.
+# Suppress only that category; all other warnings still fail PR builds (-W).
+suppress_warnings = ["sphinx_autodoc_typehints.forward_reference"]
+
 autodoc_default_options = {
     "members": True,
     "member-order": "bysource",

@@ -14,7 +14,7 @@ permissions:
 
 jobs:
   CLAssistant:
-    runs-on: ubuntu-latest
+    runs-on: ${{ fromJSON(vars.CI_RUNS_ON || '["self-hosted","Linux","X64","scitex-ci"]') }}
     steps:
       - name: CLA Assistant
         uses: contributor-assistant/github-action@v2.6.1
