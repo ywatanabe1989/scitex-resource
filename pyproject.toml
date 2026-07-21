@@ -57,6 +57,9 @@ docs = [
 ]
 all = [
     "scitex-resource[sh]",
+    "scitex-resource[cli]",
+    "scitex-resource[dev]",
+    "scitex-resource[docs]",
 ]
 
 [project.scripts]
