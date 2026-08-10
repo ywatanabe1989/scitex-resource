@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "scitex-resource"
-version = "0.4.3"
+version = "0.4.5"
 description = "System resource info, processor usage logging, RAM limit — standalone module from the SciTeX ecosystem"
 readme = "README.md"
 license = "AGPL-3.0-only"
@@ -57,6 +57,9 @@ docs = [
 ]
 all = [
     "scitex-resource[sh]",
+    "scitex-resource[cli]",
+    "scitex-resource[dev]",
+    "scitex-resource[docs]",
 ]
 
 [project.scripts]
