@@ -30,6 +30,12 @@ _LAZY = {
     "get_host_config": ("._host", "get_host_config"),
     "get_host_name": ("._host", "get_host_name"),
     "load_config": ("._host", "load_config"),
+    # Usable-CPU detection. NOT the same question as get_metrics()'s
+    # `cpu_count`, which reports how big the machine is; these report how
+    # much of it THIS process may use (affinity mask → SLURM env → machine
+    # total). Size worker pools with get_usable_cpus, never with cpu_count.
+    "get_cpu_sources": ("._cpus", "get_cpu_sources"),
+    "get_usable_cpus": ("._cpus", "get_usable_cpus"),
     # Deprecated machine-based aliases (kept for back-compat — emit a
     # DeprecationWarning on call, see _machine.py).
     "get_machine_config": ("._machine", "get_machine_config"),
@@ -60,6 +66,7 @@ def __dir__() -> list[str]:
 
 
 if TYPE_CHECKING:  # pragma: no cover — IDE / static-check support
+    from ._cpus import get_cpu_sources, get_usable_cpus
     from ._host import get_host_config, get_host_name, load_config
     from ._log_processor_usages import log_processor_usages, main
     from ._machine import get_machine_config, get_machine_name

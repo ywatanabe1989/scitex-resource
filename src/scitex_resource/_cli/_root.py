@@ -25,7 +25,7 @@ PKG = "scitex-resource"
 
 COMMAND_CATEGORIES = [
     ("Hosts", ["hosts"]),
-    ("Specs & Metrics", ["specs", "metrics", "processor-usages"]),
+    ("Specs & Metrics", ["specs", "metrics", "cpus", "processor-usages"]),
     ("RAM Limit", ["ram-limit"]),
     ("Introspection", ["list-python-apis", "list-commands", "mcp", "skills"]),
     ("Shell", ["install-shell-completion", "print-shell-completion"]),
@@ -130,6 +130,7 @@ def cli(ctx: click.Context, help_recursive: bool, as_json: bool) -> None:
 # Wire subcommands. Imports are at the bottom to avoid circular imports.
 from ._apis import list_python_apis as _list_python_apis  # noqa: E402
 from ._completion import attach_shell_completion  # noqa: E402
+from ._cpus_cmd import cpus as _cpus_grp  # noqa: E402
 from ._hosts_cmd import hosts as _hosts_grp  # noqa: E402
 from ._hosts_cmd import machine as _machine_grp  # noqa: E402
 from ._introspection import list_commands as _list_commands  # noqa: E402
@@ -144,6 +145,7 @@ cli.add_command(_hosts_grp)
 cli.add_command(_machine_grp)
 cli.add_command(_specs_grp)
 cli.add_command(_metrics_grp)
+cli.add_command(_cpus_grp)
 cli.add_command(_proc_grp)
 cli.add_command(_ram_grp)
 cli.add_command(_list_python_apis)
