@@ -3,9 +3,13 @@
 Click-based CLI satisfying the SciTeX universal-flag contract:
 
 * top-level: ``-V/--version``, ``-h/--help``, ``--help-recursive``, ``--json``
-* ``mcp list-tools`` and ``list-python-apis`` introspection commands
-* ``skills {list,get,install}`` for bundled markdown leaves
+* ``mcp list-tools`` and ``dev list-python-apis`` introspection commands
+* ``dev skills {list,get,install}`` for bundled markdown leaves
 * ``install-shell-completion`` / ``print-shell-completion``
+
+Self-maintenance surfaces live under the §13 ``dev`` group (see
+``_dev_cmd.py`` for what moved, what stayed, and why). Their former
+top-level spellings remain as hidden Phase W warn-forward aliases.
 """
 
 from __future__ import annotations
@@ -27,7 +31,10 @@ COMMAND_CATEGORIES = [
     ("Hosts", ["hosts"]),
     ("Specs & Metrics", ["specs", "metrics", "processor-usages"]),
     ("RAM Limit", ["ram-limit"]),
-    ("Introspection", ["list-python-apis", "list-commands", "mcp", "skills"]),
+    # §4a category names: `mcp` files under Service, the `dev` group under
+    # Introspection, completion under Shell.
+    ("Service", ["mcp"]),
+    ("Introspection", ["dev"]),
     ("Shell", ["install-shell-completion", "print-shell-completion"]),
 ]
 
@@ -128,16 +135,14 @@ def cli(ctx: click.Context, help_recursive: bool, as_json: bool) -> None:
 
 
 # Wire subcommands. Imports are at the bottom to avoid circular imports.
-from ._apis import list_python_apis as _list_python_apis  # noqa: E402
 from ._completion import attach_shell_completion  # noqa: E402
+from ._dev_cmd import install_dev_aliases, register_dev_group  # noqa: E402
 from ._hosts_cmd import hosts as _hosts_grp  # noqa: E402
 from ._hosts_cmd import machine as _machine_grp  # noqa: E402
-from ._introspection import list_commands as _list_commands  # noqa: E402
 from ._mcp_commands import mcp_group as _mcp_group  # noqa: E402
 from ._metrics_cmd import metrics as _metrics_grp  # noqa: E402
 from ._processor_usages_cmd import processor_usages as _proc_grp  # noqa: E402
 from ._ram_limit_cmd import ram_limit as _ram_grp  # noqa: E402
-from ._skills_cmd import skills_group as _skills_group  # noqa: E402
 from ._specs_cmd import specs as _specs_grp  # noqa: E402
 
 cli.add_command(_hosts_grp)
@@ -146,11 +151,14 @@ cli.add_command(_specs_grp)
 cli.add_command(_metrics_grp)
 cli.add_command(_proc_grp)
 cli.add_command(_ram_grp)
-cli.add_command(_list_python_apis)
-cli.add_command(_list_commands)
 cli.add_command(_mcp_group)
-cli.add_command(_skills_group)
 attach_shell_completion(cli, prog_name=PROG_NAME)
+
+# §13 — self-maintenance surfaces under one `dev` group. The aliases go LAST,
+# once `dev` is fully populated, because each one forwards to a command object
+# that must already exist.
+_dev_grp = register_dev_group(cli)
+install_dev_aliases(cli, _dev_grp)
 
 
 def main(argv: Sequence[str] | None = None) -> int:
