@@ -25,12 +25,20 @@ dependencies = [
     "PyYAML",
     "matplotlib",
     "scitex-dev>=0.11.7",  # try_import_optional helper (src/_utils/_get_env_info.py)
-    # `fastmcp` is a HARD core dep — the `scitex-resource` console-script
-    # transitively imports it at module-load on the MCP server reachability
-    # chain (`src/scitex_resource/_mcp/server.py:16`). Without it in core,
-    # bare `pip install scitex-resource` followed by the CLI's MCP path
-    # raises ModuleNotFoundError. PS-213 console-script-deps-must-be-core
-    # (scitex-dev v0.17.10+) enforces this rule ecosystem-wide.
+    # `fastmcp` is a HARD core dep, but NOT because anything imports it at
+    # module-load: `_cli/_mcp_commands.py` imports `.._mcp.server` inside each
+    # command body, and `_mcp/server.py` guards its own `from fastmcp import
+    # FastMCP` with try/except + an install hint. The console-script therefore
+    # imports cleanly without fastmcp present.
+    #
+    # It stays in core because the failure it prevents is a USER-VISIBLE one:
+    # `scitex-resource mcp start` on a bare `pip install scitex-resource` would
+    # raise at the moment of use instead of at install time, and the second
+    # console-script `scitex-resource-mcp` (-> `_mcp.server:main`) does reach
+    # the guarded import immediately. Operator ruling: a runtime "X がありません"
+    # is far worse for users than a fatter install. PS-213
+    # console-script-deps-must-be-core (scitex-dev v0.17.10+) is the
+    # ecosystem-wide form of that rule. Keep the dep; keep the imports lazy.
     "fastmcp>=0.1.0",
 ]
 

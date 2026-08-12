@@ -46,12 +46,25 @@ scitex-resource [-h|-V|--help-recursive|--json] <noun> <verb> [opts]
 | `--help`, `-h` | usage |
 | `--version`, `-V` | version string |
 | `--help-recursive` | help for every leaf |
-| `list-commands [--json]` | flat list of all leaves |
-| `list-python-apis [-v --json]` | public Python API |
+| `dev list-commands [--json]` | flat list of all leaves |
+| `dev list-python-apis [-v --json]` | public Python API |
+| `dev skills list | get NAME | install` | bundled markdown |
 | `mcp start | doctor | list-tools | install` | MCP control |
-| `skills list | get NAME | install` | bundled markdown |
 | `install-shell-completion --shell {bash,zsh,fish}` | wire <TAB> |
 | `print-shell-completion --shell {bash,zsh,fish}` | print snippet |
+
+Self-maintenance verbs live under the `dev` group (§13); `mcp` and the
+shell-completion leaves stay top level (§11 names both as NOT-in-`dev`).
+
+### Deprecated top-level spellings (still work, hidden from `--help`)
+
+| Old (Phase W alias, removed in v0.8.0) | New |
+|---|---|
+| `scitex-resource skills ...` | `scitex-resource dev skills ...` |
+| `scitex-resource list-python-apis ...` | `scitex-resource dev list-python-apis ...` |
+| `scitex-resource list-commands ...` | `scitex-resource dev list-commands ...` |
+
+Each forwards argv verbatim and warns once per shell session on stderr.
 
 ## Examples
 
