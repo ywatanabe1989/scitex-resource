@@ -6,6 +6,17 @@
 # the canonical list. See `general/03_interface_02_cli/07_audit-cli.md` §1d
 # for the lookup chain (project dict → user dict → catalog → Moby POS).
 
+nouns:
+  # `cpus` — the processors this process may run on, in `scitex-resource
+  # cpus show`. Not in the catalog and not in Moby (which holds `CPU` but
+  # not the lowercase plural). Kept rather than renamed: `cpus` is the
+  # established spelling for this quantity across the tools an operator
+  # already uses (`nproc`, `taskset -c`, `--cpus` in docker/podman,
+  # `SLURM_CPUS_PER_TASK`, `cpuset.cpus`), and the singular `cpu` would
+  # read as "one CPU" when the command's whole job is to report a COUNT.
+  # `processors` was the alternative and loses that recognition for nothing.
+  - cpus
+
 transitive_verbs:
   # `unset` — clear a previously-set config key. Standard config-CLI idiom
   # (`git config --unset`, `kubectl unset`, `npm config delete` alias `unset`).
